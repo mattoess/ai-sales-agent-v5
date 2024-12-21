@@ -22,7 +22,6 @@ export function ProspectInfoStep() {
             onChange={(e) => updateProspectInfo({ firstName: e.target.value })}
             className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#009A4D] focus:border-[#009A4D]"
             placeholder="Enter first name"
-            required
           />
         </div>
 
@@ -36,7 +35,6 @@ export function ProspectInfoStep() {
             onChange={(e) => updateProspectInfo({ lastName: e.target.value })}
             className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#009A4D] focus:border-[#009A4D]"
             placeholder="Enter last name"
-            required
           />
         </div>
 
@@ -50,7 +48,6 @@ export function ProspectInfoStep() {
             onChange={(e) => updateProspectInfo({ email: e.target.value })}
             className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#009A4D] focus:border-[#009A4D]"
             placeholder="Enter email address"
-            required
           />
         </div>
 
@@ -64,7 +61,6 @@ export function ProspectInfoStep() {
             onChange={(e) => updateProspectInfo({ companyName: e.target.value })}
             className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#009A4D] focus:border-[#009A4D]"
             placeholder="Enter company name"
-            required
           />
         </div>
       </div>

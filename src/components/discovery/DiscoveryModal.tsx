@@ -7,9 +7,8 @@ import { ThemesReview } from '../ThemesReview';
 import { SolutionReview } from '../SolutionReview';
 import { FinalAnalysis } from '../FinalAnalysis';
 import { ProgressBar } from '../ProgressBar';
-import { StageNavigation } from '../StageNavigation';
+import { StageNavigation } from './StageNavigation';
 import { useDiscoveryStore } from '../../store/discoveryStore';
-import { useSessionStore } from '../../store/sessionStore';
 
 interface DiscoveryModalProps {
   isOpen: boolean;
@@ -17,53 +16,57 @@ interface DiscoveryModalProps {
   sessionId?: string;
 }
 
-export function DiscoveryModal({ isOpen, onClose, sessionId }: DiscoveryModalProps) {
-  const stage = useDiscoveryStore((state) => state.discovery.stage);
-  const sessions = useSessionStore((state) => state.sessions);
-  const addSession = useSessionStore((state) => state.addSession);
-  const { discovery } = useDiscoveryStore();
+// Development data for testing
+const devData = {
+  currentState: {
+    barriers: [
+      "Executive team conflicts",
+      "Siloed departments",
+      "Slow decision making",
+      "Resistance to change"
+    ],
+    financialImpact: "$2.5M in delayed revenue",
+    targetDate: "2024-12-31",
+    emotionalImpact: "Team frustration and burnout\nLow morale\nHigh stress levels",
+  },
+  futureState: {
+    desiredOutcomes: [
+      "Aligned executive team",
+      "Cross-functional collaboration",
+      "Faster implementation",
+      "Improved team morale"
+    ],
+    financialImpact: "$5M additional revenue",
+    emotionalRelief: "Reduced stress\nHigher job satisfaction\nBetter work-life balance",
+  },
+  prospectInfo: {
+    firstName: "John",
+    lastName: "Smith",
+    email: "john.smith@example.com",
+    companyName: "Tech Innovations Inc"
+  }
+};
 
+export function DiscoveryModal({ isOpen, onClose, sessionId }: DiscoveryModalProps) {
+  const stage = useDiscoveryStore(state => state.discovery.stage);
+  const { updateCurrentState, updateFutureState, updateProspectInfo } = useDiscoveryStore();
+  
   React.useEffect(() => {
-    if (sessionId) {
-      const session = sessions.find(s => s.id === sessionId);
-      if (session) {
-        // Load session data into discovery store
-        useDiscoveryStore.getState().updateCurrentState({
-          barriers: ["Loaded barrier 1", "Loaded barrier 2"],
-          financialImpact: "Loaded financial impact",
-          targetDate: "2024-12-31",
-          emotionalImpact: "Loaded emotional impact"
-        });
+    if (isOpen) {
+      // Reset discovery when modal opens
+      useDiscoveryStore.getState().resetDiscovery();
+      
+      // In development, pre-populate with test data
+      if (process.env.NODE_ENV === 'development') {
+        updateCurrentState(devData.currentState);
+        updateFutureState(devData.futureState);
+        updateProspectInfo(devData.prospectInfo);
       }
     }
-  }, [sessionId, sessions]);
-
-  const handleComplete = async () => {
-    try {
-      // Save session data
-      const newSession = {
-        id: Date.now().toString(),
-        prospectName: `${discovery.prospectInfo.firstName} ${discovery.prospectInfo.lastName}`,
-        companyName: discovery.prospectInfo.companyName || '',
-        status: 'Completed',
-        date: new Date().toISOString().split('T')[0],
-        duration: '30 minutes',
-        assignedTo: 'Current User',
-      };
-      
-      // Add to session store
-      addSession(newSession);
-      
-      // Close modal
-      onClose();
-    } catch (error) {
-      console.error('Error saving session:', error);
-    }
-  };
-
-  if (!isOpen) return null;
+  }, [isOpen, updateCurrentState, updateFutureState, updateProspectInfo]);
 
   const renderStageContent = () => {
+    console.log('Rendering stage:', stage);
     switch (stage) {
       case 1:
         return <ProspectInfoStep />;
@@ -81,6 +84,8 @@ export function DiscoveryModal({ isOpen, onClose, sessionId }: DiscoveryModalPro
         return null;
     }
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -108,7 +113,7 @@ export function DiscoveryModal({ isOpen, onClose, sessionId }: DiscoveryModalPro
           </div>
 
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-            <StageNavigation onComplete={handleComplete} />
+            <StageNavigation onComplete={onClose} />
           </div>
         </div>
       </div>

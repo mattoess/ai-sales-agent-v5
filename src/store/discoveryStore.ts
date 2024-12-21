@@ -13,7 +13,7 @@ const initialState: DiscoveryState = {
     financialImpact: '',
     emotionalRelief: '',
   },
-  stage: 1,
+  stage: 1, // Ensure stage is initialized to 1
   prospectInfo: {
     firstName: '',
     lastName: '',
