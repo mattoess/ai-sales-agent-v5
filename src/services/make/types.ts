@@ -1,12 +1,13 @@
+// types.ts
 export interface DiscoveryResponse {
   current_state: {
     barrier_themes: string[];
-    emotional_impact: string[];
+    emotions: string[];
     financial_risk: string;
   };
   future_state: {
-    desired_outcomes: string[];
-    emotional_relief: string[];
+    outcome_themes: string[];
+    emotions: string[];
     financial_impact: string;
   };
 }

@@ -1,5 +1,7 @@
+// src/config/clerk.ts
 import { dark } from '@clerk/themes';
 import { env } from './env';
+import { Theme } from '@clerk/types';
 
 export const clerkConfig = {
   publishableKey: env.CLERK_PUBLISHABLE_KEY,
@@ -47,18 +49,25 @@ export const clerkConfig = {
     terms: {
       continueTo: 'Get started with'
     }
-  },
+  } as Theme,
+  
+  // Simplified redirect configuration
+  redirectUrl: window.location.origin,
+  
+  // Allowed redirect origins
   allowedRedirectOrigins: [
     'https://localhost:5173',
     'https://aisalesagentv2-yv0j--5173--c8c182a3.local-credentialless.webcontainer.io',
     window.location.origin
   ],
+  
+  // Navigation method
   navigate: (to: string) => window.location.href = to,
+  
+  // Optional sign-up configuration
   signUp: {
     hcaptchaConfiguration: {
-    siteKey: "10000000-ffff-ffff-ffff-000000000001"    
+      siteKey: "10000000-ffff-ffff-ffff-000000000001"    
     }
   },
-    // Move allowedRedirectOrigins into a redirectUrl configuration
-  redirectUrl: window.location.origin,
 };

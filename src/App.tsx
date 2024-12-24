@@ -1,3 +1,4 @@
+// src/App.tsx
 import { ClerkProvider } from '@clerk/clerk-react';
 import { BrowserRouter } from 'react-router-dom';
 import { AppRoutes } from './routes';

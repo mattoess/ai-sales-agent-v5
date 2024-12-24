@@ -15,6 +15,7 @@ export async function sendToMake(discoveryData: DiscoveryState) {
       Barriers: discoveryData.currentState.barriers.join('\r\n'),
       'Barriers Financial Impact': discoveryData.currentState.financialImpact,
       'Barriers Personal Impact': discoveryData.currentState.emotionalImpact,
+      ClientId: discoveryData.prospectInfo.clientId,
       'Outcome Financial Impact': discoveryData.futureState.financialImpact,
       Outcomes: discoveryData.futureState.desiredOutcomes.join('\r\n'),
       'Outcomes Personal Impact': discoveryData.futureState.emotionalRelief,

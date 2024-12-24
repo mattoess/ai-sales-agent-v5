@@ -11,11 +11,29 @@ export function ThemesReview() {
     updateSessionName: state.updateSessionName,
   }));
 
-  // Generate default session name when component mounts
   React.useEffect(() => {
     const defaultName = `${discovery.prospectInfo.companyName}-discovery-${new Date().toISOString().split('T')[0]}`;
     updateSessionName(defaultName);
   }, [discovery.prospectInfo.companyName, updateSessionName]);
+
+  const handleCurrentStateChange = (key: keyof typeof aiSummary.currentState, value: string | string[]) => {
+    updateAISummary({
+      currentState: {
+        [key]: value
+      }
+    });
+  };
+
+  const handleFutureStateChange = (key: keyof typeof aiSummary.futureState, value: string | string[]) => {
+    updateAISummary({
+      futureState: {
+        [key]: value
+      }
+    });
+  };
+
+  // Helper function to safely join arrays
+  const safeJoin = (arr?: string[]) => arr?.length ? arr.join('\n') : '';
 
   return (
     <motion.div 
@@ -33,43 +51,22 @@ export function ThemesReview() {
           
           <TextAreaField
             label="Key Barrier Themes"
-            value={aiSummary.currentState.barrierThemes.join('\n')}
-            onChange={(value) =>
-              updateAISummary({
-                currentState: {
-                  ...aiSummary.currentState,
-                  barrierThemes: value.split('\n').filter(theme => theme.trim()),
-                },
-              })
-            }
+            value={safeJoin(aiSummary.currentState.barrierThemes)}
+            onChange={(value) => handleCurrentStateChange('barrierThemes', value.split('\n').filter(theme => theme.trim()))}
             rows={6}
           />
 
           <TextAreaField
             label="Personal Impact Themes"
-            value={aiSummary.currentState.emotionalThemes.join('\n')}
-            onChange={(value) =>
-              updateAISummary({
-                currentState: {
-                  ...aiSummary.currentState,
-                  emotionalThemes: value.split('\n').filter(theme => theme.trim()),
-                },
-              })
-            }
+            value={safeJoin(aiSummary.currentState.emotionalThemes)}
+            onChange={(value) => handleCurrentStateChange('emotionalThemes', value.split('\n').filter(theme => theme.trim()))}
             rows={4}
           />
 
           <TextAreaField
             label="Financial Risk Statement"
-            value={aiSummary.currentState.urgencyStatement}
-            onChange={(value) =>
-              updateAISummary({
-                currentState: {
-                  ...aiSummary.currentState,
-                  urgencyStatement: value,
-                },
-              })
-            }
+            value={aiSummary.currentState.urgencyStatement || ''}
+            onChange={(value) => handleCurrentStateChange('urgencyStatement', value)}
             rows={3}
           />
         </div>
@@ -80,43 +77,22 @@ export function ThemesReview() {
           
           <TextAreaField
             label="Desired Outcome Themes"
-            value={aiSummary.futureState.outcomeThemes.join('\n')}
-            onChange={(value) =>
-              updateAISummary({
-                futureState: {
-                  ...aiSummary.futureState,
-                  outcomeThemes: value.split('\n').filter(theme => theme.trim()),
-                },
-              })
-            }
+            value={safeJoin(aiSummary.futureState.outcomeThemes)}
+            onChange={(value) => handleFutureStateChange('outcomeThemes', value.split('\n').filter(theme => theme.trim()))}
             rows={6}
           />
 
           <TextAreaField
             label="Personal Impact Themes"
-            value={aiSummary.futureState.emotionalImpactThemes.join('\n')}
-            onChange={(value) =>
-              updateAISummary({
-                futureState: {
-                  ...aiSummary.futureState,
-                  emotionalImpactThemes: value.split('\n').filter(theme => theme.trim()),
-                },
-              })
-            }
+            value={safeJoin(aiSummary.futureState.emotionalImpactThemes)}
+            onChange={(value) => handleFutureStateChange('emotionalImpactThemes', value.split('\n').filter(theme => theme.trim()))}
             rows={4}
           />
 
           <TextAreaField
             label="Financial Impact Statement"
-            value={aiSummary.futureState.financialImpactStatement}
-            onChange={(value) =>
-              updateAISummary({
-                futureState: {
-                  ...aiSummary.futureState,
-                  financialImpactStatement: value,
-                },
-              })
-            }
+            value={aiSummary.futureState.financialImpactStatement || ''}
+            onChange={(value) => handleFutureStateChange('financialImpactStatement', value)}
             rows={3}
           />
         </div>
@@ -130,7 +106,7 @@ export function ThemesReview() {
         <input
           type="text"
           id="sessionName"
-          value={discovery.sessionName}
+          value={discovery.sessionName || ''}
           onChange={(e) => updateSessionName(e.target.value)}
           className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#009A4D] focus:border-[#009A4D]"
           placeholder="Enter session name"

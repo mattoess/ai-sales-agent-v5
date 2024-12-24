@@ -1,4 +1,4 @@
-import { User } from './auth';
+
 
 export interface ProspectInfo {
   firstName: string;

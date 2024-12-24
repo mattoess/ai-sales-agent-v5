@@ -1,37 +1,26 @@
+// useMakeWebhooks.ts
 import { useCallback } from 'react';
 import { DiscoveryState } from '../../types/discovery';
 import { sendDiscoveryData } from '../../services/make/discoveryService';
 import { generateSolution } from '../../services/make/solutionService';
 import { useDiscoveryStore } from '../../store/discoveryStore';
-import { useDiscoveryErrors } from './useDiscoveryErrors';
+import { transformFromApiFormat } from '../../services/make/transformers';
 
 export function useMakeWebhooks() {
   const { updateAISummary, setSessionId } = useDiscoveryStore();
-  const { handleError } = useDiscoveryErrors();
 
   const processDiscovery = useCallback(async (discoveryData: DiscoveryState) => {
     try {
       const response = await sendDiscoveryData(discoveryData);
+      const transformedData = transformFromApiFormat(response);
       
-      updateAISummary({
-        currentState: {
-          barrierThemes: response.current_state.barrier_themes,
-          emotionalThemes: response.current_state.emotional_impact,
-          urgencyStatement: response.current_state.financial_risk
-        },
-        futureState: {
-          outcomeThemes: response.future_state.desired_outcomes,
-          emotionalImpactThemes: response.future_state.emotional_relief,
-          financialImpactStatement: response.future_state.financial_impact
-        }
-      });
+      updateAISummary(transformedData);
 
       return true;
     } catch (error) {
-      handleError(error);
       return false;
     }
-  }, [updateAISummary, handleError]);
+  }, [updateAISummary]);
 
   const processSolution = useCallback(async (discoveryData: DiscoveryState) => {
     try {
@@ -47,10 +36,9 @@ export function useMakeWebhooks() {
 
       return true;
     } catch (error) {
-      handleError(error);
       return false;
     }
-  }, [setSessionId, updateAISummary, handleError]);
+  }, [setSessionId, updateAISummary]);
 
   return {
     processDiscovery,

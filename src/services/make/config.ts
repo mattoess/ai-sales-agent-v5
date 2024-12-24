@@ -6,6 +6,10 @@ export const MAKE_CONFIG = {
   },
   retry: {
     maxAttempts: 3,
-    delayMs: 1000
+    delayMs: 1000,
+    maxDelayMs: 20000
+  },
+  timeouts: {
+    request: 30000 // 30 seconds
   }
 } as const;
