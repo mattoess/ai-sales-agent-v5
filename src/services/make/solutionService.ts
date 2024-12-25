@@ -1,3 +1,4 @@
+// src/services/make/solutionService.ts
 import { DiscoveryState } from '../../types/discovery';
 import { SolutionResponse } from './types';
 import { validateSolutionResponse } from './validation';
@@ -5,6 +6,7 @@ import { makeApiRequest } from './api';
 import { ValidationError } from './errors';
 import { solutionCache, getCacheKey } from './cache';
 
+// Add the export keyword here
 export async function generateSolution(discoveryData: DiscoveryState): Promise<SolutionResponse> {
   try {
     const cacheKey = getCacheKey(discoveryData);
@@ -12,16 +14,30 @@ export async function generateSolution(discoveryData: DiscoveryState): Promise<S
     if (cached) return cached;
 
     const payload = {
+      // Existing payload preparation
       barrier_themes: discoveryData.aiSummary.currentState.barrierThemes,
       emotional_impact: discoveryData.aiSummary.currentState.emotionalThemes,
       financial_risk: discoveryData.aiSummary.currentState.urgencyStatement,
       desired_outcomes: discoveryData.aiSummary.futureState.outcomeThemes,
       emotional_relief: discoveryData.aiSummary.futureState.emotionalImpactThemes,
       financial_impact: discoveryData.aiSummary.futureState.financialImpactStatement,
+
+      // Prospect Info
       firstName: discoveryData.prospectInfo.firstName,
       lastName: discoveryData.prospectInfo.lastName,
       email: discoveryData.prospectInfo.email,
       companyName: discoveryData.prospectInfo.companyName,
+
+      // New identifiers
+      clientId: discoveryData.prospectInfo.clientId,
+      userId: discoveryData.prospectInfo.userId,
+
+      // Optional contextual fields
+      industryType: discoveryData.prospectInfo.industryType,
+      companySize: discoveryData.prospectInfo.companySize,
+      urgencyLevel: discoveryData.prospectInfo.urgencyLevel,
+
+      // Existing session details
       sessionName: discoveryData.sessionName,
       solution: discoveryData.solution,
       sessionId: discoveryData.sessionId

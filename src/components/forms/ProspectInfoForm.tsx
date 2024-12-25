@@ -1,56 +1,99 @@
 import React from 'react';
 import { useDiscoveryStore } from '../../store/discoveryStore';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 
 export const ProspectInfoForm: React.FC = () => {
-  const { prospectInfo, updateProspectInfo } = useDiscoveryStore(
-    (state) => ({
-      prospectInfo: state.discovery.prospectInfo,
-      updateProspectInfo: state.updateProspectInfo,
-    })
-  );
+  const { prospectInfo, updateProspectInfo } = useDiscoveryStore((state) => ({
+    prospectInfo: state.discovery.prospectInfo,
+    updateProspectInfo: state.updateProspectInfo,
+  }));
+
+  const handleIndustryTypeChange = (value: string) => {
+    updateProspectInfo({ industryType: value });
+  };
+
+  const handleCompanySizeChange = (value: string) => {
+    const size = parseInt(value, 10);
+    if (!isNaN(size)) {
+      updateProspectInfo({ companySize: size });
+    }
+  };
+
+  const handleUrgencyLevelChange = (value: 'low' | 'medium' | 'high') => {
+    updateProspectInfo({ urgencyLevel: value });
+  };
 
   return (
     <div className="space-y-6 bg-white p-6 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold text-gray-900">Contact Information</h2>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            First Name
+            Industry Type
           </label>
-          <input
-            type="text"
-            value={prospectInfo.firstName}
-            onChange={(e) => updateProspectInfo({ firstName: e.target.value })}
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter first name"
-          />
+          <Select
+            onValueChange={handleIndustryTypeChange}
+            value={prospectInfo.industryType || ''}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select Industry" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="technology">Technology</SelectItem>
+              <SelectItem value="healthcare">Healthcare</SelectItem>
+              <SelectItem value="finance">Finance</SelectItem>
+              <SelectItem value="manufacturing">Manufacturing</SelectItem>
+              <SelectItem value="retail">Retail</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Last Name
+            Company Size
           </label>
-          <input
-            type="text"
-            value={prospectInfo.lastName}
-            onChange={(e) => updateProspectInfo({ lastName: e.target.value })}
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter last name"
-          />
+          <Select
+            onValueChange={handleCompanySizeChange}
+            value={prospectInfo.companySize?.toString() || ''}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select Company Size" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">1-10 Employees</SelectItem>
+              <SelectItem value="2">11-50 Employees</SelectItem>
+              <SelectItem value="3">51-200 Employees</SelectItem>
+              <SelectItem value="4">201-500 Employees</SelectItem>
+              <SelectItem value="5">500+ Employees</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div className="md:col-span-2">
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Email Address
+            Urgency Level
           </label>
-          <input
-            type="email"
-            value={prospectInfo.email}
-            onChange={(e) => updateProspectInfo({ email: e.target.value })}
-            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-            placeholder="Enter email address"
-          />
+          <Select
+            onValueChange={handleUrgencyLevelChange}
+            value={prospectInfo.urgencyLevel || ''}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select Urgency" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="high">High</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </div>

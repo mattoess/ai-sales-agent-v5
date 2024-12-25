@@ -5,7 +5,11 @@ export interface ProspectInfo {
   lastName: string;
   email: string;
   companyName: string;
-  clientId?: string;
+  clientId?: string;      // Optional Airtable/system client identifier
+  userId?: string;        // Optional Clerk user identifier
+  industryType?: string;  // New optional field
+  companySize?: number;   // New optional field
+  urgencyLevel?: 'low' | 'medium' | 'high'; // New optional field
 }
 
 export interface DiscoveryState {

@@ -4,16 +4,9 @@ import { useDiscoveryModal } from '../hooks/useDiscoveryModal';
 import { useDiscoveryStore } from '../store/discoveryStore';
 import { DiscoveryState } from '../types/discovery';
 
-// Explicitly type the store
-type DiscoveryStore = ReturnType<typeof useDiscoveryStore> & {
-  discovery: DiscoveryState;
-  updateAISummary: (data: any) => void;
-  updateSessionName: (name: string) => void;
-};
-
 interface DiscoveryContextValue extends ReturnType<typeof useDiscoveryModal> {
   discovery: DiscoveryState;
-  updateAISummary: (data: any) => void;
+  updateAISummary: (data: Partial<DiscoveryState['aiSummary']>) => void;
   updateSessionName: (name: string) => void;
 }
 
@@ -21,15 +14,19 @@ const DiscoveryContext = createContext<DiscoveryContextValue | undefined>(undefi
 
 export function DiscoveryProvider({ children }: { children: React.ReactNode }) {
   const modalControls = useDiscoveryModal();
-  const store = useDiscoveryStore() as DiscoveryStore;
-  
+  const {
+    discovery,
+    updateAISummary,
+    updateSessionName,
+  } = useDiscoveryStore();
+
   const value: DiscoveryContextValue = {
     ...modalControls,
-    discovery: store.discovery,
-    updateAISummary: store.updateAISummary,
-    updateSessionName: store.updateSessionName,
+    discovery,
+    updateAISummary,
+    updateSessionName,
   };
-  
+
   return (
     <DiscoveryContext.Provider value={value}>
       {children}

@@ -1,22 +1,10 @@
 {
+  "extends": "./tsconfig.json", // Inherit from base config
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2023"],
     "module": "ESNext",
-    "skipLibCheck": true,
-
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    "noEmit": true,
-
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "typeRoots": ["./node_modules/@types"] // Node.js type definitions
   },
   "include": ["vite.config.ts"]
 }
