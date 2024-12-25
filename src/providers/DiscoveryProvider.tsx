@@ -14,17 +14,13 @@ const DiscoveryContext = createContext<DiscoveryContextValue | undefined>(undefi
 
 export function DiscoveryProvider({ children }: { children: React.ReactNode }) {
   const modalControls = useDiscoveryModal();
-  const {
-    discovery,
-    updateAISummary,
-    updateSessionName,
-  } = useDiscoveryStore();
+  const discoveryStore = useDiscoveryStore();
 
   const value: DiscoveryContextValue = {
     ...modalControls,
-    discovery,
-    updateAISummary,
-    updateSessionName,
+    discovery: discoveryStore.discovery,
+    updateAISummary: discoveryStore.updateAISummary,
+    updateSessionName: discoveryStore.updateSessionName,
   };
 
   return (

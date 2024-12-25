@@ -1,6 +1,5 @@
-// transformers.ts
 import { DiscoveryState } from '../../types/discovery';
-import { DiscoveryResponse } from './types';
+import { DiscoveryResponse } from '../../types/discovery';  // Ensure this is exported in discovery.ts
 
 export function transformToApiFormat(state: DiscoveryState): DiscoveryResponse {
   return {
@@ -18,16 +17,18 @@ export function transformToApiFormat(state: DiscoveryState): DiscoveryResponse {
 }
 
 export function transformFromApiFormat(response: DiscoveryResponse): Partial<DiscoveryState['aiSummary']> {
-  return {
-    currentState: {
-      barrierThemes: response.current_state.barrier_themes,
-      emotionalThemes: response.current_state.emotions,
-      urgencyStatement: response.current_state.financial_risk,
-    },
-    futureState: {
-      outcomeThemes: response.future_state.outcome_themes,
-      emotionalImpactThemes: response.future_state.emotions,
-      financialImpactStatement: response.future_state.financial_impact,
-    }
-  };
-}
+    return {
+      currentState: {
+        barrierThemes: response.current_state.barrier_themes || [],
+        emotionalThemes: response.current_state.emotions,
+        urgencyStatement: response.current_state.financial_risk || '',
+      },
+      futureState: {
+        outcomeThemes: response.future_state.outcome_themes || [],
+        emotionalImpactThemes: response.future_state.emotions,
+        financialImpactStatement: response.future_state.financial_impact || '',
+      }
+    };
+  }
+  
+  

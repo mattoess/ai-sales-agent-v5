@@ -1,4 +1,4 @@
-import React from 'react';
+// src/pages/Dashboard.tsx
 import { WelcomeHeader } from '../components/dashboard/WelcomeHeader';
 import { StatsBanner } from '../components/dashboard/StatsBanner';
 import { SessionList } from '../components/sessions/SessionList';

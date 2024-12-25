@@ -2,42 +2,6 @@ import { withRetry } from './retry';
 import { MakeApiError, NetworkError } from './errors';
 import { MAKE_CONFIG } from './config';
 
-// api.ts
-interface State {
-  barrier_themes?: string[];
-  emotions: string[];
-  financial_risk?: string;
-  financial_impact?: string;
-  outcome_themes?: string[];  // Added this
-}
-
-interface MakeResponse {
-  current_state: State;
-  future_state: State;
-}
-
-function isMakeResponse(data: unknown): data is MakeResponse {
-  if (!data || typeof data !== 'object') return false;
-  
-  const response = data as MakeResponse;
-  
-  // Check if both required states exist and are objects
-  if (!response.current_state || typeof response.current_state !== 'object') return false;
-  if (!response.future_state || typeof response.future_state !== 'object') return false;
-  
-  // Validate current_state
-  if (!Array.isArray(response.current_state.emotions)) return false;
-  if (response.current_state.barrier_themes && !Array.isArray(response.current_state.barrier_themes)) return false;
-  if (response.current_state.financial_risk && typeof response.current_state.financial_risk !== 'string') return false;
-  
-  // Validate future_state
-  if (!Array.isArray(response.future_state.emotions)) return false;
-  if (response.future_state.outcome_themes && !Array.isArray(response.future_state.outcome_themes)) return false;
-  if (response.future_state.financial_impact && typeof response.future_state.financial_impact !== 'string') return false;
-  
-  return true;
-}
-
 export async function makeApiRequest<T>(
   endpoint: keyof typeof MAKE_CONFIG.urls,
   payload: unknown,
@@ -92,6 +56,3 @@ export async function makeApiRequest<T>(
     delayMs: MAKE_CONFIG.retry.delayMs
   });
 }
-
-export type { MakeResponse };
-export { isMakeResponse };

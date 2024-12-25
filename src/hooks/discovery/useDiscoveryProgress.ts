@@ -3,7 +3,8 @@ import { useDiscoveryStore } from '../../store/discoveryStore';
 import { useStageValidation } from './useStageValidation';
 import { sendDiscoveryData } from '../../services/make/discoveryService';
 import { generateSolution } from '../../services/make/solutionService';
-import { transformFromApiFormat } from '../../services/make/transformers'; // Add this import
+import { transformFromApiFormat } from '../../services/make/transformers';
+
 
 export function useDiscoveryProgress() {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -46,7 +47,6 @@ export function useDiscoveryProgress() {
         case 3: {
           const response = await sendDiscoveryData(discovery);
           
-          // Use the transformer for consistent mapping
           const transformedData = transformFromApiFormat(response);
           updateAISummary(transformedData);
           
@@ -58,10 +58,7 @@ export function useDiscoveryProgress() {
           const response = await generateSolution(discovery);
           setSessionId(response.sessionId);
           updateAISummary({
-            solution: {
-              description: response.solution_description,
-              testimonials: response.testimonials
-            }
+            solution: response.solution_description
           });
           setStage(5);
           break;

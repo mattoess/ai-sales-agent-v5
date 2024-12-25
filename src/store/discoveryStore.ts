@@ -1,13 +1,11 @@
-// discoveryStore.ts
 import { create } from 'zustand';
-import { DiscoveryState } from '../types/discovery';
+import { DiscoveryState, SolutionResponse } from '../types/discovery';
 
 interface AISummaryUpdate {
   currentState?: Partial<DiscoveryState['aiSummary']['currentState']>;
   futureState?: Partial<DiscoveryState['aiSummary']['futureState']>;
-  solution?: DiscoveryState['aiSummary']['solution'];
+  solution?: SolutionResponse['solution_description'];
 }
-
 const initialState: DiscoveryState = {
   currentState: {
     barriers: [],
@@ -34,6 +32,7 @@ const initialState: DiscoveryState = {
   },
   solution: '',
   sessionName: '',
+  sessionId: undefined,
   aiSummary: {
     currentState: {
       barrierThemes: [],
@@ -45,6 +44,7 @@ const initialState: DiscoveryState = {
       emotionalImpactThemes: [],
       financialImpactStatement: '',
     },
+    solution: undefined,
   },
 };
 
@@ -79,24 +79,24 @@ export const useDiscoveryStore = create<{
         futureState: { ...state.discovery.futureState, ...data },
       },
     })),
-  updateAISummary: (data: AISummaryUpdate) =>
-    set((state) => ({
-      discovery: {
-        ...state.discovery,
-        aiSummary: {
-          ...state.discovery.aiSummary,
-          currentState: {
-            ...state.discovery.aiSummary.currentState,
-            ...(data.currentState || {}),
+    updateAISummary: (data: AISummaryUpdate) =>
+      set((state) => ({
+        discovery: {
+          ...state.discovery,
+          aiSummary: {
+            ...state.discovery.aiSummary,
+            currentState: {
+              ...state.discovery.aiSummary.currentState,
+              ...(data.currentState || {}),
+            },
+            futureState: {
+              ...state.discovery.aiSummary.futureState,
+              ...(data.futureState || {}),
+            },
+            solution: data.solution,
           },
-          futureState: {
-            ...state.discovery.aiSummary.futureState,
-            ...(data.futureState || {}),
-          },
-          solution: data.solution,
         },
-      },
-    })),
+      })),
   updateProspectInfo: (data) =>
     set((state) => ({
       discovery: {

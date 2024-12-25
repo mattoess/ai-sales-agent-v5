@@ -1,12 +1,14 @@
-// src/services/make/solutionService.ts
-import { DiscoveryState } from '../../types/discovery';
-import { SolutionResponse } from './types';
-import { validateSolutionResponse } from './validation';
-import { makeApiRequest } from './api';
+import { DiscoveryState, SolutionResponse } from '../../types/discovery';
+import { makeApiRequest } from './api';  // Ensure this path is correct
 import { ValidationError } from './errors';
 import { solutionCache, getCacheKey } from './cache';
 
-// Add the export keyword here
+// Placeholder validation function
+const validateSolutionResponse = (data: unknown): data is {body: string, status: number, headers: any[]} => {
+  return typeof data === 'object' && data !== null && 
+         'body' in data && 'status' in data && 'headers' in data;
+};
+
 export async function generateSolution(discoveryData: DiscoveryState): Promise<SolutionResponse> {
   try {
     const cacheKey = getCacheKey(discoveryData);
@@ -14,43 +16,36 @@ export async function generateSolution(discoveryData: DiscoveryState): Promise<S
     if (cached) return cached;
 
     const payload = {
-      // Existing payload preparation
       barrier_themes: discoveryData.aiSummary.currentState.barrierThemes,
       emotional_impact: discoveryData.aiSummary.currentState.emotionalThemes,
       financial_risk: discoveryData.aiSummary.currentState.urgencyStatement,
       desired_outcomes: discoveryData.aiSummary.futureState.outcomeThemes,
       emotional_relief: discoveryData.aiSummary.futureState.emotionalImpactThemes,
       financial_impact: discoveryData.aiSummary.futureState.financialImpactStatement,
-
-      // Prospect Info
       firstName: discoveryData.prospectInfo.firstName,
       lastName: discoveryData.prospectInfo.lastName,
       email: discoveryData.prospectInfo.email,
       companyName: discoveryData.prospectInfo.companyName,
-
-      // New identifiers
       clientId: discoveryData.prospectInfo.clientId,
       userId: discoveryData.prospectInfo.userId,
-
-      // Optional contextual fields
       industryType: discoveryData.prospectInfo.industryType,
       companySize: discoveryData.prospectInfo.companySize,
       urgencyLevel: discoveryData.prospectInfo.urgencyLevel,
-
-      // Existing session details
       sessionName: discoveryData.sessionName,
       solution: discoveryData.solution,
       sessionId: discoveryData.sessionId
     };
 
-    const data = await makeApiRequest<SolutionResponse>('solution', payload, validateSolutionResponse);
+    const apiResponse = await makeApiRequest<{body: string, status: number, headers: any[]}>('solution', payload, validateSolutionResponse);
     
-    if (!data) {
+    if (!apiResponse) {
       throw new ValidationError('No data received from Make.com solution webhook');
     }
 
-    solutionCache.set(cacheKey, data);
-    return data;
+    const parsedSolution = parseSolutionDescription(apiResponse.body);
+    
+    solutionCache.set(cacheKey, parsedSolution);
+    return parsedSolution;
 
   } catch (error) {
     if (error instanceof ValidationError) {
@@ -61,4 +56,45 @@ export async function generateSolution(discoveryData: DiscoveryState): Promise<S
     console.error('Error in generateSolution:', error);
     throw new ValidationError('Failed to generate solution');
   }
+}
+
+function parseSolutionDescription(xmlString: string): SolutionResponse {
+  const parseSection = (sectionName: string): string[] => {
+    const regex = new RegExp(`<${sectionName}>(.*?)<\/${sectionName}>`, 'gs');
+    const match = xmlString.match(regex);
+    if (!match) return [];
+    
+    return match[0]
+      .replace(`<${sectionName}>`, '')
+      .replace(`</${sectionName}>`, '')
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('<'));
+  };
+
+  return {
+    solution_description: {
+      transformation_journey: {
+        current_state: parseSection('current_state'),
+        gap_analysis: parseSection('gap_analysis'),
+        future_state: parseSection('future_state')
+      },
+      solution_architecture: {
+        core_components: parseSection('core_components'),
+        implementation_approach: parseSection('implementation_approach')
+      },
+      value_proposition: {
+        business_impact: parseSection('business_impact'),
+        emotional_impact: parseSection('emotional_impact'),
+        risk_mitigation: parseSection('risk_mitigation')
+      },
+      investment_summary: {
+        pricing_structure: parseSection('pricing_structure'),
+        roi_projection: parseSection('roi_projection'),
+        timing_considerations: parseSection('timing_considerations')
+      }
+    },
+    testimonials: [], 
+    sessionId: Date.now().toString()
+  };
 }

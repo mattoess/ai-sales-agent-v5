@@ -1,15 +1,52 @@
-
+export interface DiscoveryResponse {
+  current_state: {
+    barrier_themes?: string[];
+    emotions: string[];
+    financial_risk?: string;
+  };
+  future_state: {
+    outcome_themes?: string[];
+    emotions: string[];
+    financial_impact?: string;
+  };
+}
 
 export interface ProspectInfo {
   firstName: string;
   lastName: string;
   email: string;
   companyName: string;
-  clientId?: string;      // Optional Airtable/system client identifier
-  userId?: string;        // Optional Clerk user identifier
-  industryType?: string;  // New optional field
-  companySize?: number;   // New optional field
-  urgencyLevel?: 'low' | 'medium' | 'high'; // New optional field
+  clientId?: string;
+  userId?: string;
+  industryType?: string;
+  companySize?: number;
+  urgencyLevel?: 'low' | 'medium' | 'high';
+}
+
+export interface SolutionResponse {
+  solution_description: {
+    transformation_journey: {
+      current_state: string[];
+      gap_analysis: string[];
+      future_state: string[];
+    };
+    solution_architecture: {
+      core_components: string[];
+      implementation_approach: string[];
+    };
+    value_proposition: {
+      business_impact: string[];
+      emotional_impact: string[];
+      risk_mitigation: string[];
+    };
+    investment_summary: {
+      pricing_structure: string[];
+      roi_projection: string[];
+      timing_considerations: string[];
+    };
+  };
+  testimonials: string[];
+  sessionId: string;
 }
 
 export interface DiscoveryState {
@@ -40,10 +77,7 @@ export interface DiscoveryState {
       emotionalImpactThemes: string[];
       financialImpactStatement: string;
     };
-    solution?: {
-      description: string;
-      testimonials: string[];
-    };
+    solution?: SolutionResponse['solution_description'];
   };
 }
 

@@ -1,4 +1,3 @@
-// useMakeWebhooks.ts
 import { useCallback } from 'react';
 import { DiscoveryState } from '../../types/discovery';
 import { sendDiscoveryData } from '../../services/make/discoveryService';
@@ -18,6 +17,7 @@ export function useMakeWebhooks() {
 
       return true;
     } catch (error) {
+      console.error('Error processing discovery:', error);
       return false;
     }
   }, [updateAISummary]);
@@ -28,14 +28,12 @@ export function useMakeWebhooks() {
       
       setSessionId(response.sessionId);
       updateAISummary({
-        solution: {
-          description: response.solution_description,
-          testimonials: response.testimonials
-        }
+        solution: response.solution_description
       });
 
       return true;
     } catch (error) {
+      console.error('Error processing solution:', error);
       return false;
     }
   }, [setSessionId, updateAISummary]);
