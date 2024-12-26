@@ -3,12 +3,20 @@ import { TextAreaField } from './forms/TextAreaField';
 import { useDiscoveryStore } from '../store/discoveryStore';
 import { motion } from 'framer-motion';
 
+const SOLUTION_OPTIONS = [
+  'Executive Team Coaching',
+  'Executive 1:1 Coaching',
+  'Executive Readiness Coaching',
+] as const;
+
 export function ThemesReview() {
-  const { aiSummary, updateAISummary, discovery, updateSessionName } = useDiscoveryStore((state) => ({
+  const { aiSummary, updateAISummary, discovery, updateSessionName, solution, updateSolution } = useDiscoveryStore((state) => ({
     aiSummary: state.discovery.aiSummary,
     updateAISummary: state.updateAISummary,
     discovery: state.discovery,
     updateSessionName: state.updateSessionName,
+    solution: state.discovery.solution,
+    updateSolution: state.updateSolution,
   }));
 
   React.useEffect(() => {
@@ -95,6 +103,24 @@ export function ThemesReview() {
             onChange={(value) => handleFutureStateChange('financialImpactStatement', value)}
             rows={3}
           />
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Recommended Solution
+            </label>
+            <select
+              value={solution}
+              onChange={(e) => updateSolution(e.target.value)}
+              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#009A4D] focus:border-[#009A4D]"
+            >
+              <option value="">Select a solution</option>
+              {SOLUTION_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            </div>
         </div>
       </div>
 
@@ -113,7 +139,7 @@ export function ThemesReview() {
           required
         />
         <p className="mt-2 text-sm text-gray-500">
-          This name will be used to identify the discovery session in your dashboard
+          This name will be used to identify the discovery session in your dashboard for future edits and reference
         </p>
       </div>
     </motion.div>

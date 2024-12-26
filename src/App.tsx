@@ -1,5 +1,5 @@
 // src/App.tsx
-import React, { Suspense } from 'react';
+import { Suspense } from 'react';
 import { ClerkProvider } from '@clerk/clerk-react';
 import { BrowserRouter } from 'react-router-dom';
 import { AppRoutes } from './routes';

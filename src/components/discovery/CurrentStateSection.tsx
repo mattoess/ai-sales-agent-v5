@@ -15,7 +15,7 @@ export const CurrentStateSection: React.FC = () => {
         label="Pain Points - What is getting in the way of what you are trying to achieve?"
         value={currentState.barriers.join('\n')}
         onChange={(value) => updateCurrentState({ barriers: value.split('\n') })}
-        placeholder="Describe the barriers..."
+        placeholder="Describe the barriers that are keeping you and your team from achieving success?"
         rows={6}
       />
 
@@ -23,7 +23,7 @@ export const CurrentStateSection: React.FC = () => {
         label="Financial Impact - What happens if these barriers continue to be in the way?"
         value={currentState.financialImpact}
         onChange={(value) => updateCurrentState({ financialImpact: value })}
-        placeholder="Describe the financial impact..."
+        placeholder="Describe the financial impact (revenue goals missed, profitability impacts, bonuses missed)"
       />
 
       <DateField
@@ -33,10 +33,10 @@ export const CurrentStateSection: React.FC = () => {
       />
 
       <TextAreaField
-        label="Personal Impact - What's it feel like every day waking up with the barriers?"
+        label="Personal Impact - What's it feel like every day waking up with the barriers? Or, prepping for board meeting?"
         value={currentState.emotionalImpact}
         onChange={(value) => updateCurrentState({ emotionalImpact: value })}
-        placeholder="Describe the personal impact..."
+        placeholder="Describe the personal impact and the emotional stress"
         rows={4}
       />
     </div>
