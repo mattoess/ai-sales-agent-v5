@@ -19,10 +19,7 @@ export function ProspectInfoStep() {
   };
 
   const handleCompanySizeChange = (value: string) => {
-    const size = parseInt(value, 10);
-    if (!isNaN(size)) {
-      updateProspectInfo({ companySize: size });
-    }
+      updateProspectInfo({ companySize: value });
   };
 
   const handleUrgencyLevelChange = (value: 'low' | 'medium' | 'high') => {

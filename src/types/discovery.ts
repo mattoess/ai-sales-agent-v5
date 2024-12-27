@@ -21,7 +21,7 @@ export interface ProspectInfo {
   clientId?: string;
   userId?: string;
   industryType?: string;
-  companySize?: number;
+  companySize?: string;
   urgencyLevel?: 'low' | 'medium' | 'high';
 }
 

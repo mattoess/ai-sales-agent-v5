@@ -5,7 +5,7 @@ import { validateDiscoveryResponse } from './validation';
 import { makeApiRequest } from './api';
 import { ValidationError } from './errors';
 import { discoveryCache, getCacheKey } from './cache';
-import { transformToApiFormat } from './transformers';
+// import { transformToApiFormat } from './transformers';
 
 export async function sendDiscoveryData(discoveryData: DiscoveryState): Promise<DiscoveryResponse> {
   try {
@@ -13,9 +13,9 @@ export async function sendDiscoveryData(discoveryData: DiscoveryState): Promise<
     const cached = discoveryCache.get(cacheKey);
     if (cached) return cached;
 
-    const apiData = transformToApiFormat(discoveryData);
+    // const apiData = transformToApiFormat(discoveryData);
 
-    const data = await makeApiRequest<DiscoveryResponse>('discovery', apiData, validateDiscoveryResponse);
+    const data = await makeApiRequest<DiscoveryResponse>('discovery', discoveryData, validateDiscoveryResponse); // Try discoveryData prior to transformation
     
     if (!data) {
       throw new ValidationError('No data received from Make.com discovery webhook');
