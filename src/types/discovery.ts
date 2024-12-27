@@ -1,3 +1,5 @@
+// src/types/discovery.ts
+
 export interface DiscoveryResponse {
   current_state: {
     barrier_themes?: string[];
@@ -26,26 +28,36 @@ export interface ProspectInfo {
 export interface SolutionResponse {
   solution_description: {
     transformation_journey: {
-      current_state: string[];
-      gap_analysis: string[];
-      future_state: string[];
+      current_situation: string;  // HTML string with section-title and section-text classes
+      challenges: string;         // HTML string with section-title and component-list/item classes
+      vision: string;            // HTML string with section-title and section-text classes
     };
-    solution_architecture: {
-      core_components: string[];
-      implementation_approach: string[];
+    solution_recommendation: {    // Changed from solution_architecture
+      overview: string;          // HTML string with section-title and section-text classes
+      key_components: string;    // HTML string with section-title and component-list/item classes
+      approach: string;          // HTML string with section-title and approach-steps/step-text classes
     };
     value_proposition: {
-      business_impact: string[];
-      emotional_impact: string[];
-      risk_mitigation: string[];
+      business_outcomes: string;  // HTML string with section-title and section-text classes
+      personal_benefits: string;  // HTML string with section-title and benefits-list/item classes
+      risk_mitigation: string;   // HTML string with section-title and risk-list/item classes
     };
     investment_summary: {
-      pricing_structure: string[];
-      roi_projection: string[];
-      timing_considerations: string[];
+      pricing_model: string;     // HTML string with section-title and section-text classes
+      roi_analysis: string;      // HTML string with section-title and section-text classes
+      timeline: string;          // HTML string with section-title and flexible format
     };
   };
-  testimonials: string[];
+  testimonials: {
+    caseSituation1: string;   // HTML: <div class='case-study'><h3 class='case-title'>Similar Situation</h3><p class='case-text'>[situation]</p></div>
+    caseSolution1: string;    // HTML: <div class='case-study'><h3 class='case-title'>Solution Implementation</h3>
+                             //       <p class='case-text'>[solution]</p><ul class='component-list'><li class='component-item'>[elements]</li></ul></div>
+    caseValue1: string;       // HTML: <div class='case-study'><h3 class='case-title'>Results & Impact</h3>
+                             //       <p class='case-text'>[results]</p><ul class='benefits-list'><li class='benefit-item'>[benefits]</li></ul></div>
+    caseSituation2: string;   // HTML: Same structure as caseSituation1
+    caseSolution2: string;    // HTML: Same structure as caseSolution1
+    caseValue2: string;       // HTML: Same structure as caseValue1
+  };
   sessionId: string;
 }
 

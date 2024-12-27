@@ -1,78 +1,40 @@
-export interface ProspectInfo {
-  firstName: string;
-  lastName: string;
-  email: string;
-  companyName: string;
-  clientId?: string;
-  userId?: string;
-  industryType?: string;
-  companySize?: number;
-  urgencyLevel?: 'low' | 'medium' | 'high';
-}
-
-export interface SolutionResponse {
-  solution_description: {
-    transformation_journey: {
-      current_state: string[];
-      gap_analysis: string[];
-      future_state: string[];
-    };
-    solution_architecture: {
-      core_components: string[];
-      implementation_approach: string[];
-    };
-    value_proposition: {
-      business_impact: string[];
-      emotional_impact: string[];
-      risk_mitigation: string[];
-    };
-    investment_summary: {
-      pricing_structure: string[];
-      roi_projection: string[];
-      timing_considerations: string[];
-    };
-  };
-  testimonials: string[];
-  sessionId: string;
-}
-
-export interface DiscoveryState {
-  currentState: {
-    barriers: string[];
-    financialImpact: string;
-    targetDate: string;
-    emotionalImpact: string;
-  };
-  futureState: {
-    desiredOutcomes: string[];
-    financialImpact: string;
-    emotionalRelief: string;
-  };
-  stage: number;
-  prospectInfo: ProspectInfo;
-  solution: string;
-  sessionName: string;
-  sessionId?: string;
-  aiSummary: {
-    currentState: {
-      barrierThemes: string[];
-      emotionalThemes: string[];
-      urgencyStatement: string;
-    };
-    futureState: {
-      outcomeThemes: string[];
-      emotionalImpactThemes: string[];
-      financialImpactStatement: string;
-    };
-    solution?: SolutionResponse['solution_description'];
-  };
-}
-
-export interface DiscoverySession extends Omit<DiscoveryState, 'stage'> {
-  id: string;
-  status: 'draft' | 'in_progress' | 'completed';
-  createdAt: string;
-  updatedAt: string;
-  userId: string;
-  companyId: string;
-}
+[{
+	"resource": "/Users/MattOess_1/Library/CloudStorage/GoogleDrive-Matt.Oess@techcxo.com/My Drive/AI Automation/Sales Discovery Agent/Local Repo for VS Code/ai-sales-agent-v5/src/services/make/types.ts",
+	"owner": "typescript",
+	"code": "2305",
+	"severity": 8,
+	"message": "Module '\"../../types/discovery\"' has no exported member 'Testimonial'.",
+	"source": "ts",
+	"startLineNumber": 5,
+	"startColumn": 3,
+	"endLineNumber": 5,
+	"endColumn": 14
+},{
+	"resource": "/Users/MattOess_1/Library/CloudStorage/GoogleDrive-Matt.Oess@techcxo.com/My Drive/AI Automation/Sales Discovery Agent/Local Repo for VS Code/ai-sales-agent-v5/src/services/make/types.ts",
+	"owner": "typescript",
+	"code": "6133",
+	"severity": 4,
+	"message": "'Testimonial' is declared but its value is never read.",
+	"source": "ts",
+	"startLineNumber": 5,
+	"startColumn": 3,
+	"endLineNumber": 5,
+	"endColumn": 14,
+	"tags": [
+		1
+	]
+},{
+	"resource": "/Users/MattOess_1/Library/CloudStorage/GoogleDrive-Matt.Oess@techcxo.com/My Drive/AI Automation/Sales Discovery Agent/Local Repo for VS Code/ai-sales-agent-v5/src/services/make/types.ts",
+	"owner": "typescript",
+	"code": "6133",
+	"severity": 4,
+	"message": "'DiscoverySolutionResponse' is declared but its value is never read.",
+	"source": "ts",
+	"startLineNumber": 6,
+	"startColumn": 23,
+	"endLineNumber": 6,
+	"endColumn": 48,
+	"tags": [
+		1
+	]
+}]

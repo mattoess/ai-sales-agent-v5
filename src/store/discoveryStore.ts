@@ -26,9 +26,9 @@ const initialState: DiscoveryState = {
     companyName: '',
     clientId: undefined,
     userId: undefined,
-    industryType: undefined,
-    companySize: undefined,
-    urgencyLevel: undefined,
+    industryType: '',
+    companySize: undefined,  // line 30: should be string | undefined
+    urgencyLevel: undefined, // line 31: should be 'low' | 'medium' | 'high' | undefined
   },
   solution: '',
   sessionName: '',
