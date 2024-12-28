@@ -4,6 +4,7 @@ import { DiscoveryState, SolutionResponse } from '../../types/discovery';
 import { makeApiRequest } from './api';
 import { ValidationError } from './errors';
 import { solutionCache, getCacheKey } from './cache';
+import { MAKE_CONFIG } from './config';
 
 const validateSolutionResponse = (data: unknown): data is {body: any, status: number, headers: any[]} => {
   return typeof data === 'object' && data !== null && 
@@ -73,7 +74,15 @@ export async function generateSolution(discoveryData: DiscoveryState): Promise<S
       sessionId: discoveryData.sessionId
     };
 
-    const apiResponse = await makeApiRequest('solution', payload, validateSolutionResponse);
+    const apiResponse = await makeApiRequest(
+      MAKE_CONFIG.urls.solution,
+      payload,
+      validateSolutionResponse,
+      MAKE_CONFIG.timeouts.solution, // Use the solution timeout from config
+      MAKE_CONFIG.retry.maxAttempts, // Use the default max attempts from config
+      MAKE_CONFIG.retry.delayMs, // Use the default delay between attempts from config
+      MAKE_CONFIG.retry.maxDelayMs // Use the default max delay from config
+    );
     
     if (!apiResponse) {
       throw new ValidationError('No data received from Make.com solution webhook');
