@@ -2,27 +2,27 @@
 
 export interface DiscoveryResponse {
   current_state: {
-    barrier_themes?: string[];
-    emotions: string[];
-    financial_risk?: string;
+    barrier_themes?: string[]; //These are insightful themes that the AI has identified from the prospect's current situation and barriers
+    emotions: string[]; //These are the emotions that the AI has identified from the prospect's current situation
+    financial_risk?: string; //This is the financial risk and urgency (based on date that barriers must be removed) that the AI has identified from the prospect's current situation
   };
   future_state: {
-    outcome_themes?: string[];
-    emotions: string[];
-    financial_impact?: string;
+    outcome_themes?: string[]; //These are insightful themes that the AI has identified from the prospect's future desired outcomes
+    emotions: string[]; //These are the emotions that the AI has identified from the prospect's future desired outcomes
+    financial_impact?: string; //This is the financial impact that the AI has identified from the prospect's future desired outcomes once the barriers are removed
   };
 }
 
 export interface ProspectInfo {
-  firstName: string;
-  lastName: string;
-  email: string;
-  companyName: string;
-  clientId?: string;
-  userId?: string;
-  industryType?: string;
-  companySize?: string;
-  urgencyLevel?: 'low' | 'medium' | 'high';
+  firstName: string; //Prospect's first name
+  lastName: string; //Prospect's last name
+  email: string; //Prospect's email address
+  companyName: string; //Prospect's company name
+  clientId?: string; // This is the solution provider company and not the prospect
+  userId?: string; // This is the solution provider user and not the prospect
+  industryType?: string; //Prospect's industry
+  companySize?: string; //Prospect's company size
+  urgencyLevel?: 'low' | 'medium' | 'high'; //Prospect's urgency level
 }
 
 export interface SolutionResponse {
@@ -75,7 +75,6 @@ export interface DiscoveryState {
   };
   stage: number;
   prospectInfo: ProspectInfo;
-  solution: string;
   sessionName: string;
   sessionId?: string;
   aiSummary: {
@@ -89,8 +88,8 @@ export interface DiscoveryState {
       emotionalImpactThemes: string[];
       financialImpactStatement: string;
     };
-    solution?: SolutionResponse['solution_description'];
-  };
+    };
+    solution: string;
 }
 
 export interface DiscoverySession extends Omit<DiscoveryState, 'stage'> {

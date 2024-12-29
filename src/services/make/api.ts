@@ -1,58 +1,84 @@
-import { withRetry } from './retry';
-import { MakeApiError, NetworkError } from './errors';
+// src/services/make/api.ts
+
+import { ValidationError } from './errors';
 import { MAKE_CONFIG } from './config';
 
 export async function makeApiRequest<T>(
-  endpoint: keyof typeof MAKE_CONFIG.urls,
-  payload: unknown,
-  validateResponse: (data: unknown) => data is T
-): Promise<T> {
-  return withRetry(async () => {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+  endpoint: string,
+  payload: any,
+  validateResponse: (data: unknown) => data is T,
+  timeoutMs: number = MAKE_CONFIG.timeouts.solution,
+  maxAttempts: number = MAKE_CONFIG.retry.maxAttempts,
+  delayMs: number = MAKE_CONFIG.retry.delayMs,
+  maxDelayMs: number = MAKE_CONFIG.retry.maxDelayMs
+): Promise<T | null> {
+  let attempt = 0;
 
-      const response = await fetch(MAKE_CONFIG.urls[endpoint], {
+  while (attempt < maxAttempts) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      console.log('Making fetch request to:', endpoint);
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
         body: JSON.stringify(payload),
-        signal: controller.signal
+        signal: controller.signal,
       });
 
-      clearTimeout(timeoutId);
+      clearTimeout(id);
 
       if (!response.ok) {
-        const errorBody = await response.text();
-        throw new MakeApiError(
-          `Make.com ${endpoint} request failed: ${errorBody}`,
-          response.status
-        );
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
+      console.log('Response status:', response.status);
       const data = await response.json();
-      
-      if (!validateResponse(data)) {
-        throw new MakeApiError(
-          `Invalid response format from Make.com: ${JSON.stringify(data)}`
-        );
+      console.log('Raw response data:', data);
+
+      // Let the service handle specific validations
+      const isValid = validateResponse(data);
+      console.log('Validation result:', isValid);
+      console.log('Data type:', typeof data);
+      console.log('Is array?', Array.isArray(data));
+      if (Array.isArray(data) && data.length > 0) {
+        console.log('First item:', data[0]);
+        console.log('First item body type:', typeof data[0]?.body);
+      }
+
+      if (!isValid) {
+        throw new ValidationError('Response validation failed');
       }
 
       return data;
-    } catch (error: unknown) {
-      if (error instanceof MakeApiError) throw error;
-      if (error instanceof TypeError) {
-        throw new NetworkError('Network request failed', error);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          console.error('Request timed out');
+        } else {
+          console.error(`Attempt ${attempt + 1} failed:`, error);
+          if (error instanceof ValidationError) {
+            console.error('Validation details:', error.message);
+          }
+        }
       }
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new NetworkError('Request timeout', error);
+
+      attempt++;
+
+      if (attempt >= maxAttempts) {
+        console.error('Max attempts reached');
+        return null;
       }
-      throw new MakeApiError('Unknown error occurred', undefined, error);
+
+      // Exponential backoff delay
+      const delay = Math.min(delayMs * Math.pow(2, attempt - 1), maxDelayMs);
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
-  }, {
-    maxAttempts: MAKE_CONFIG.retry.maxAttempts,
-    delayMs: MAKE_CONFIG.retry.delayMs
-  });
+  }
+
+  return null;
 }

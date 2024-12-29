@@ -1,3 +1,4 @@
+// Used for processing documets and videos in the admin panel
 import { useCallback } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Document, Video } from '../components/admin/content/types';

@@ -1,3 +1,5 @@
+// src/services/make/config.ts
+
 export const MAKE_CONFIG = {
   urls: {
     discovery: 'https://hook.us2.make.com/qx0twe651e9jiwlbpri5tjzo3dx3bov2',
@@ -10,6 +12,7 @@ export const MAKE_CONFIG = {
     maxDelayMs: 20000
   },
   timeouts: {
-    request: 30000 // 30 seconds
+    request: 30000, // Default timeout is 30 seconds
+    solution: 50000 // Timeout for solution webhook is 45 seconds
   }
 } as const;
