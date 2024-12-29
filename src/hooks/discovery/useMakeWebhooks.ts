@@ -27,9 +27,9 @@ export function useMakeWebhooks() {
       const response = await generateSolution(discoveryData);
       
       setSessionId(response.sessionId);
-      updateAISummary({
-        solution: response.solution_description
-      });
+      // updateAISummary({
+      //   solution: response.solution_description
+      // });
 
       return true;
     } catch (error) {

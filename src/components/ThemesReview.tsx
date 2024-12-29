@@ -1,13 +1,16 @@
+// src/components/ThemesReview.tsx
+
 import React from 'react';
 import { TextAreaField } from './forms/TextAreaField';
 import { useDiscoveryStore } from '../store/discoveryStore';
 import { motion } from 'framer-motion';
-
-const SOLUTION_OPTIONS = [
-  'Executive Team Coaching',
-  'Executive 1:1 Coaching',
-  'Executive Readiness Coaching',
-] as const;
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 
 export function ThemesReview() {
   const { aiSummary, updateAISummary, discovery, updateSessionName, solution, updateSolution } = useDiscoveryStore((state) => ({
@@ -42,6 +45,18 @@ export function ThemesReview() {
 
   // Helper function to safely join arrays
   const safeJoin = (arr?: string[]) => arr?.length ? arr.join('\n') : '';
+
+  const handleSolutionChange = (value: string) => {
+    updateSolution(value);
+  };
+
+  // Example dynamic solution options
+  const solutionOptions = [
+    'Executive Team Coaching',
+    'Executive 1:1 Coaching',
+    'Executive Readiness Coaching',
+    // Add more options dynamically as needed
+  ];
 
   return (
     <motion.div 
@@ -108,19 +123,22 @@ export function ThemesReview() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Recommended Solution
             </label>
-            <select
-              value={solution}
-              onChange={(e) => updateSolution(e.target.value)}
-              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#009A4D] focus:border-[#009A4D]"
+            <Select
+              onValueChange={handleSolutionChange}
+              value={solution || ''}
             >
-              <option value="">Select a solution</option>
-              {SOLUTION_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            </div>
+              <SelectTrigger className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#009A4D] focus:border-[#009A4D]">
+                <SelectValue placeholder="Select Solution Recommendation" />
+              </SelectTrigger>
+              <SelectContent>
+                {solutionOptions.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 

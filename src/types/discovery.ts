@@ -75,7 +75,6 @@ export interface DiscoveryState {
   };
   stage: number;
   prospectInfo: ProspectInfo;
-  solution: string;
   sessionName: string;
   sessionId?: string;
   aiSummary: {
@@ -89,8 +88,8 @@ export interface DiscoveryState {
       emotionalImpactThemes: string[];
       financialImpactStatement: string;
     };
-    solution?: SolutionResponse['solution_description'];
-  };
+    };
+    solution: string;
 }
 
 export interface DiscoverySession extends Omit<DiscoveryState, 'stage'> {

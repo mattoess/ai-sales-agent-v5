@@ -7,10 +7,10 @@ export async function makeApiRequest<T>(
   endpoint: string,
   payload: any,
   validateResponse: (data: unknown) => data is T,
-  timeoutMs: number = MAKE_CONFIG.timeouts.request, // Default timeout from config
-  maxAttempts: number = MAKE_CONFIG.retry.maxAttempts, // Default max attempts from config
-  delayMs: number = MAKE_CONFIG.retry.delayMs, // Default delay between attempts from config
-  maxDelayMs: number = MAKE_CONFIG.retry.maxDelayMs // Default max delay from config
+  timeoutMs: number = MAKE_CONFIG.timeouts.solution,
+  maxAttempts: number = MAKE_CONFIG.retry.maxAttempts,
+  delayMs: number = MAKE_CONFIG.retry.delayMs,
+  maxDelayMs: number = MAKE_CONFIG.retry.maxDelayMs
 ): Promise<T | null> {
   let attempt = 0;
 
@@ -19,6 +19,8 @@ export async function makeApiRequest<T>(
     const id = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
+      console.log('Making fetch request to:', endpoint);
+      
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -34,18 +36,35 @@ export async function makeApiRequest<T>(
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Raw response data:', data);
 
-      if (!validateResponse(data)) {
-        throw new ValidationError('Invalid response format');
+      // Let the service handle specific validations
+      const isValid = validateResponse(data);
+      console.log('Validation result:', isValid);
+      console.log('Data type:', typeof data);
+      console.log('Is array?', Array.isArray(data));
+      if (Array.isArray(data) && data.length > 0) {
+        console.log('First item:', data[0]);
+        console.log('First item body type:', typeof data[0]?.body);
+      }
+
+      if (!isValid) {
+        throw new ValidationError('Response validation failed');
       }
 
       return data;
     } catch (error) {
-      if (error.name === 'AbortError') {
-        console.error('Request timed out');
-      } else {
-        console.error(`Attempt ${attempt + 1} failed:`, error);
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          console.error('Request timed out');
+        } else {
+          console.error(`Attempt ${attempt + 1} failed:`, error);
+          if (error instanceof ValidationError) {
+            console.error('Validation details:', error.message);
+          }
+        }
       }
 
       attempt++;
