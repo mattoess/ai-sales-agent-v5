@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-
 import { DiscoveryState } from '../types/discovery';
 
 interface AISummaryUpdate {
@@ -45,7 +44,8 @@ const initialState: DiscoveryState = {
       financialImpactStatement: '',
     },
   },
-  solution: '',
+  solution: undefined,
+  showError: false, // Initialize with a default value
 };
 
 export const useDiscoveryStore = create<{
@@ -58,8 +58,10 @@ export const useDiscoveryStore = create<{
   updateSessionName: (name: string) => void;
   setSessionId: (id: string) => void;
   resetDiscovery: () => void;
-  solution: string;
+  solution: string | undefined;
   updateSolution: (solution: string) => void;
+  showError: boolean;
+  setShowError: (show: boolean) => void;
 }>((set) => ({
   discovery: initialState,
   setStage: (stage: number) => set((state) => ({ discovery: { ...state.discovery, stage } })),
@@ -104,6 +106,12 @@ export const useDiscoveryStore = create<{
     discovery: { ...state.discovery, sessionId: id },
     })),
   resetDiscovery: () => set({ discovery: initialState }),
-  solution:initialState.solution,
-  updateSolution: (solution: string) => set((state) => ({discovery: { ...state.discovery, solution, }})),
+  solution: initialState.solution,
+  updateSolution: (solution: string) => set((state) => ({
+    discovery: { ...state.discovery, solution },
+  })),
+  showError: false,
+  setShowError: (show: boolean) => set((state) => ({
+    discovery: { ...state.discovery, showError: show },
+  })),
 }));

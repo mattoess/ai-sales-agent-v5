@@ -6,30 +6,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export function ProspectInfoStep() {
-  const { prospectInfo, updateProspectInfo } = useDiscoveryStore((state) => ({
+  const { prospectInfo, updateProspectInfo, showError, setShowError } = useDiscoveryStore((state) => ({
     prospectInfo: state.discovery.prospectInfo,
     updateProspectInfo: state.updateProspectInfo,
+    showError: state.discovery.showError,
+    setShowError: state.setShowError,
   }));
 
   // Handlers for dropdown selectors
   const handleIndustryTypeChange = (value: string) => {
     updateProspectInfo({ industryType: value });
+    if (showError) setShowError(false);
   };
 
   const handleCompanySizeChange = (value: string) => {
-      updateProspectInfo({ companySize: value });
+    updateProspectInfo({ companySize: value });
+    if (showError) setShowError(false);
   };
 
   const handleUrgencyLevelChange = (value: 'low' | 'medium' | 'high') => {
     updateProspectInfo({ urgencyLevel: value });
+    if (showError) setShowError(false);
   };
 
   return (
     <div className="space-y-6 bg-white p-6 rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold text-gray-900">Contact Information</h2>
       
+      {showError && (
+        <Alert variant="destructive">
+          <AlertDescription>
+            Please make sure you select Industry, Company Size, and Urgency Level before moving forward
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Basic Contact Information */}
         <div>
