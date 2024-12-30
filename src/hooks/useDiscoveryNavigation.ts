@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { useDiscoveryStore } from '../store/discoveryStore';
-import { useUser } from '@clerk/clerk-react';
+// import { useState } from 'react';
+// import { useDiscoveryStore } from '../store/discoveryStore';
+// import { useUser } from '@clerk/clerk-react';
 import { useDiscoveryProgress } from './discovery/useDiscoveryProgress';
 
 export function useDiscoveryNavigation() {

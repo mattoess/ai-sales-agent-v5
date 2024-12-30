@@ -56,7 +56,7 @@ export interface SolutionResponse {
                              //       <p class='case-text'>[results]</p><ul class='benefits-list'><li class='benefit-item'>[benefits]</li></ul></div>
     caseSituation2: string;   // HTML: Same structure as caseSituation1
     caseSolution2: string;    // HTML: Same structure as caseSolution1
-    caseValue2: string;       // HTML: Same structure as caseValue1
+    caseValue2: string;      // HTML: Same structure as caseValue1
   };
   sessionId: string;
 }
@@ -88,8 +88,9 @@ export interface DiscoveryState {
       emotionalImpactThemes: string[];
       financialImpactStatement: string;
     };
-    };
-    solution: string;
+  };
+  solution?: string;
+  showError?: boolean;
 }
 
 export interface DiscoverySession extends Omit<DiscoveryState, 'stage'> {

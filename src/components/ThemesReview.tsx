@@ -1,5 +1,3 @@
-// src/components/ThemesReview.tsx
-
 import React from 'react';
 import { TextAreaField } from './forms/TextAreaField';
 import { useDiscoveryStore } from '../store/discoveryStore';
@@ -11,15 +9,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export function ThemesReview() {
-  const { aiSummary, updateAISummary, discovery, updateSessionName, solution, updateSolution } = useDiscoveryStore((state) => ({
+  const { 
+    aiSummary, 
+    updateAISummary, 
+    discovery, 
+    updateSessionName, 
+    solution, 
+    updateSolution,
+    showError,
+    setShowError
+  } = useDiscoveryStore((state) => ({
     aiSummary: state.discovery.aiSummary,
     updateAISummary: state.updateAISummary,
     discovery: state.discovery,
     updateSessionName: state.updateSessionName,
     solution: state.discovery.solution,
     updateSolution: state.updateSolution,
+    showError: state.discovery.showError,
+    setShowError: state.setShowError,
   }));
 
   React.useEffect(() => {
@@ -48,6 +58,7 @@ export function ThemesReview() {
 
   const handleSolutionChange = (value: string) => {
     updateSolution(value);
+    setShowError(false); // Clear error when solution is selected
   };
 
   // Example dynamic solution options
@@ -55,7 +66,6 @@ export function ThemesReview() {
     'Executive Team Coaching',
     'Executive 1:1 Coaching',
     'Executive Readiness Coaching',
-    // Add more options dynamically as needed
   ];
 
   return (
@@ -119,7 +129,7 @@ export function ThemesReview() {
             rows={3}
           />
 
-          <div>
+          <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Recommended Solution
             </label>
@@ -138,6 +148,13 @@ export function ThemesReview() {
                 ))}
               </SelectContent>
             </Select>
+            {showError && (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  Please select a recommended solution before proceeding
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
         </div>
       </div>

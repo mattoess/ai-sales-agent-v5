@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useDiscoveryStore } from '../store/discoveryStore';
-import { useSessionStore } from '../store/sessionStore';
+// import { useSessionStore } from '../store/sessionStore';
 
 // Development data
 const devData = {
