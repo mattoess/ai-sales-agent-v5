@@ -15,14 +15,16 @@ export function useDiscoveryProgress() {
     discovery, 
     updateAISummary, 
     setSessionId,
-    setShowError 
+    setShowError,
+    setSolutionResponse
   } = useDiscoveryStore(state => ({
     stage: state.discovery.stage,
     setStage: state.setStage,
     discovery: state.discovery,
     updateAISummary: state.updateAISummary,
     setSessionId: state.setSessionId,
-    setShowError: state.setShowError
+    setShowError: state.setShowError,
+    setSolutionResponse: state.setSolutionResponse
   }));
 
   const validation = useStageValidation();
@@ -88,9 +90,10 @@ export function useDiscoveryProgress() {
             setShowError(true);
             throw new Error('Please select a solution before proceeding');
           }
-
+        
           console.log('Solution is selected, proceeding with generation');
           const response = await generateSolution(discovery);
+          setSolutionResponse(response);
           setSessionId(response.sessionId);
           setStage(5);
           break;
@@ -112,7 +115,7 @@ export function useDiscoveryProgress() {
     } finally {
       setIsProcessing(false);
     }
-  }, [stage, discovery, validation, setStage, updateAISummary, setSessionId, setShowError]);
+  }, [stage, discovery, validation, setStage, updateAISummary, setSessionId, setShowError, setSolutionResponse]);
 
   const handleBack = useCallback(() => {
     console.log('⬅️ Handling back navigation from stage:', stage);

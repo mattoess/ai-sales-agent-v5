@@ -6,7 +6,7 @@ import { useDiscoveryStore } from '../../store/discoveryStore';
 import { transformFromApiFormat } from '../../services/make/transformers';
 
 export function useMakeWebhooks() {
-  const { updateAISummary, setSessionId } = useDiscoveryStore();
+  const { updateAISummary, setSessionId, setSolutionResponse } = useDiscoveryStore();
 
   const processDiscovery = useCallback(async (discoveryData: DiscoveryState) => {
     try {
@@ -24,19 +24,25 @@ export function useMakeWebhooks() {
 
   const processSolution = useCallback(async (discoveryData: DiscoveryState) => {
     try {
+      console.log('processSolution - Input discoveryData:', discoveryData);
+      
       const response = await generateSolution(discoveryData);
+    
+      console.log('processSolution - Generated Solution Response:', response);
+    
+      // Add more detailed logging
+      console.log('processSolution - Before setSolutionResponse');
+      setSolutionResponse(response);
+      console.log('processSolution - After setSolutionResponse');
       
       setSessionId(response.sessionId);
-      // updateAISummary({
-      //   solution: response.solution_description
-      // });
 
       return true;
     } catch (error) {
       console.error('Error processing solution:', error);
       return false;
     }
-  }, [setSessionId, updateAISummary]);
+  }, [setSolutionResponse, setSessionId]);
 
   return {
     processDiscovery,

@@ -1,103 +1,108 @@
 // src/types/discovery.ts
 
+// Represents the AI-generated insights from the initial discovery process
 export interface DiscoveryResponse {
   current_state: {
-    barrier_themes?: string[]; //These are insightful themes that the AI has identified from the prospect's current situation and barriers
-    emotions: string[]; //These are the emotions that the AI has identified from the prospect's current situation
-    financial_risk?: string; //This is the financial risk and urgency (based on date that barriers must be removed) that the AI has identified from the prospect's current situation
+    barrier_themes?: string[]; // Insightful themes that the AI has identified from the prospect's current situation and barriers
+    emotions: string[]; // Emotions that the AI has identified from the prospect's current situation
+    financial_risk?: string; // Financial risk and urgency (based on date that barriers must be removed) identified by the AI
   };
   future_state: {
-    outcome_themes?: string[]; //These are insightful themes that the AI has identified from the prospect's future desired outcomes
-    emotions: string[]; //These are the emotions that the AI has identified from the prospect's future desired outcomes
-    financial_impact?: string; //This is the financial impact that the AI has identified from the prospect's future desired outcomes once the barriers are removed
+    outcome_themes?: string[]; // Insightful themes that the AI has identified from the prospect's future desired outcomes
+    emotions: string[]; // Emotions that the AI has identified from the prospect's future desired outcomes
+    financial_impact?: string; // Potential financial impact once the barriers are removed
   };
 }
 
+// Comprehensive information about the prospect
 export interface ProspectInfo {
-  firstName: string; //Prospect's first name
-  lastName: string; //Prospect's last name
-  email: string; //Prospect's email address
-  companyName: string; //Prospect's company name
-  clientId?: string; // This is the solution provider company and not the prospect
-  userId?: string; // This is the solution provider user and not the prospect
-  industryType?: string; //Prospect's industry
-  companySize?: string; //Prospect's company size
-  urgencyLevel?: 'low' | 'medium' | 'high'; //Prospect's urgency level
+  firstName: string; // Prospect's first name
+  lastName: string; // Prospect's last name
+  email: string; // Prospect's email address
+  companyName: string; // Prospect's company name
+  clientId?: string; // Identifier for the solution provider company
+  userId?: string; // Identifier for the solution provider user
+  industryType?: string; // Prospect's industry classification
+  companySize?: string; // Size of the prospect's company
+  urgencyLevel?: 'low' | 'medium' | 'high'; // Prospect's perceived urgency of solving their challenges
 }
 
+// Detailed solution response with rich, HTML-formatted content
 export interface SolutionResponse {
   solution_description: {
     transformation_journey: {
-      current_situation: string;  // HTML string with section-title and section-text classes
-      challenges: string;         // HTML string with section-title and component-list/item classes
-      vision: string;            // HTML string with section-title and section-text classes
+      current_situation: string;  // HTML-formatted description of the current situation
+      challenges: string;         // HTML-formatted list of existing challenges
+      vision: string;             // HTML-formatted description of the desired future state
     };
-    solution_recommendation: {    // Changed from solution_architecture
-      overview: string;          // HTML string with section-title and section-text classes
-      key_components: string;    // HTML string with section-title and component-list/item classes
-      approach: string;          // HTML string with section-title and approach-steps/step-text classes
+    solution_recommendation: {
+      overview: string;          // High-level solution overview
+      key_components: string;    // Detailed components of the proposed solution
+      approach: string;          // Structured approach to implementing the solution
     };
     value_proposition: {
-      business_outcomes: string;  // HTML string with section-title and section-text classes
-      personal_benefits: string;  // HTML string with section-title and benefits-list/item classes
-      risk_mitigation: string;   // HTML string with section-title and risk-list/item classes
+      business_outcomes: string;  // Expected business-level results
+      personal_benefits: string;  // Benefits for individual stakeholders
+      risk_mitigation: string;   // Strategies to address potential risks
     };
     investment_summary: {
-      pricing_model: string;     // HTML string with section-title and section-text classes
-      roi_analysis: string;      // HTML string with section-title and section-text classes
-      timeline: string;          // HTML string with section-title and flexible format
+      pricing_model: string;     // Breakdown of solution costs
+      roi_analysis: string;      // Return on investment analysis
+      timeline: string;          // Implementation timeline
     };
   };
   testimonials: {
-    caseSituation1: string;   // HTML: <div class='case-study'><h3 class='case-title'>Similar Situation</h3><p class='case-text'>[situation]</p></div>
-    caseSolution1: string;    // HTML: <div class='case-study'><h3 class='case-title'>Solution Implementation</h3>
-                             //       <p class='case-text'>[solution]</p><ul class='component-list'><li class='component-item'>[elements]</li></ul></div>
-    caseValue1: string;       // HTML: <div class='case-study'><h3 class='case-title'>Results & Impact</h3>
-                             //       <p class='case-text'>[results]</p><ul class='benefits-list'><li class='benefit-item'>[benefits]</li></ul></div>
-    caseSituation2: string;   // HTML: Same structure as caseSituation1
-    caseSolution2: string;    // HTML: Same structure as caseSolution1
-    caseValue2: string;      // HTML: Same structure as caseValue1
+    // Detailed case studies with HTML formatting
+    caseSituation1: string;   // First case study's current situation
+    caseSolution1: string;    // First case study's solution implementation
+    caseValue1: string;       // First case study's results and impact
+    caseSituation2: string;   // Second case study's current situation
+    caseSolution2: string;    // Second case study's solution implementation
+    caseValue2: string;       // Second case study's results and impact
   };
-  sessionId: string;
+  sessionId: string; // Unique identifier for the solution generation session
 }
 
+// Comprehensive state representing the entire discovery and solution process
 export interface DiscoveryState {
   currentState: {
-    barriers: string[];
-    financialImpact: string;
-    targetDate: string;
-    emotionalImpact: string;
+    barriers: string[];        // Specific barriers identified
+    financialImpact: string;   // Financial implications of current barriers
+    targetDate: string;        // Date by which barriers need to be addressed
+    emotionalImpact: string;   // Emotional toll of current challenges
   };
   futureState: {
-    desiredOutcomes: string[];
-    financialImpact: string;
-    emotionalRelief: string;
+    desiredOutcomes: string[]; // Specific outcomes the prospect wants to achieve
+    financialImpact: string;   // Anticipated financial improvement
+    emotionalRelief: string;   // Expected emotional benefits
   };
-  stage: number;
-  prospectInfo: ProspectInfo;
-  sessionName: string;
-  sessionId?: string;
+  stage: number;               // Current stage in the discovery process
+  prospectInfo: ProspectInfo;  // Detailed prospect information
+  sessionName: string;         // Name or identifier for the discovery session
+  sessionId?: string;          // Unique identifier for the session
   aiSummary: {
     currentState: {
-      barrierThemes: string[];
-      emotionalThemes: string[];
-      urgencyStatement: string;
+      barrierThemes: string[];     // AI-generated barrier themes
+      emotionalThemes: string[];   // AI-identified emotional themes
+      urgencyStatement: string;    // AI's assessment of urgency
     };
     futureState: {
-      outcomeThemes: string[];
-      emotionalImpactThemes: string[];
-      financialImpactStatement: string;
+      outcomeThemes: string[];         // AI-generated outcome themes
+      emotionalImpactThemes: string[]; // AI-identified future emotional themes
+      financialImpactStatement: string;// AI's assessment of financial potential
     };
   };
-  solution?: string;
-  showError?: boolean;
+  solution?: string;           // User-selected solution type
+  solutionResponse?: SolutionResponse; // Detailed solution generated by AI
+  showError?: boolean;         // Flag to indicate if an error should be displayed
 }
 
+// Represents a persistent discovery session with additional metadata
 export interface DiscoverySession extends Omit<DiscoveryState, 'stage'> {
-  id: string;
-  status: 'draft' | 'in_progress' | 'completed';
-  createdAt: string;
-  updatedAt: string;
-  userId: string;
-  companyId: string;
+  id: string;                  // Unique identifier for the session
+  status: 'draft' | 'in_progress' | 'completed'; // Current status of the session
+  createdAt: string;           // Timestamp of session creation
+  updatedAt: string;           // Timestamp of last update
+  userId: string;              // User who created the session
+  companyId: string;           // Company associated with the session
 }

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { DiscoveryState } from '../types/discovery';
+import { DiscoveryState, SolutionResponse } from '../types/discovery';
 
 interface AISummaryUpdate {
   currentState?: Partial<DiscoveryState['aiSummary']['currentState']>;
@@ -45,6 +45,7 @@ const initialState: DiscoveryState = {
     },
   },
   solution: undefined,
+  solutionResponse: undefined, // Add this line to initialize solutionResponse
   showError: false, // Initialize with a default value
 };
 
@@ -62,6 +63,7 @@ export const useDiscoveryStore = create<{
   updateSolution: (solution: string) => void;
   showError: boolean;
   setShowError: (show: boolean) => void;
+  setSolutionResponse: (response: SolutionResponse) => void;
 }>((set) => ({
   discovery: initialState,
   setStage: (stage: number) => set((state) => ({ discovery: { ...state.discovery, stage } })),
@@ -113,5 +115,12 @@ export const useDiscoveryStore = create<{
   showError: false,
   setShowError: (show: boolean) => set((state) => ({
     discovery: { ...state.discovery, showError: show },
+  })),
+  // Add the setSolutionResponse method
+  setSolutionResponse: (response: SolutionResponse) => set((state) => ({
+    discovery: { 
+      ...state.discovery, 
+      solutionResponse: response 
+    }
   })),
 }));
