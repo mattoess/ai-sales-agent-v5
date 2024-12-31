@@ -2,6 +2,7 @@
 import { dark } from '@clerk/themes';
 import { env } from './env';
 import { Theme } from '@clerk/types';
+import { ROUTES } from './constants';
 
 export const clerkConfig = {
   publishableKey: env.CLERK_PUBLISHABLE_KEY,
@@ -13,6 +14,8 @@ export const clerkConfig = {
       colorText: '#1f2937',
       colorBackground: '#ffffff',
       colorInputText: '#1f2937',
+      colorTextSecondary: '#1f2937', // For verification code text
+      colorInputBackground: '#ffffff',
     },
     elements: {
       formButtonPrimary: 'bg-techcxo-green hover:bg-techcxo-green/90',
@@ -39,6 +42,8 @@ export const clerkConfig = {
       input: 'bg-white text-gray-900',
       formFieldAction: 'text-gray-900',
       formFieldInputShowPasswordButton: 'text-gray-700 hover:text-gray-900',
+      otpInputInput: 'text-gray-900 bg-white border-gray-300',
+      verificationCodeInput: 'text-gray-900',
     },
     layout: {
       socialButtonsPlacement: 'bottom',
@@ -51,8 +56,9 @@ export const clerkConfig = {
     }
   } as Theme,
   
-  // Simplified redirect configuration
-  redirectUrl: window.location.origin,
+  // Post-authentication redirects
+  afterSignUpUrl: ROUTES.REGISTER,    // New users go to registration
+  afterSignInUrl: ROUTES.DASHBOARD,   // Existing users go to dashboard
   
   // Allowed redirect origins
   allowedRedirectOrigins: [

@@ -8,6 +8,14 @@ export const DEFAULT_KEYS = {
 export const ENV_VARS = {
   CLERK_KEY: 'VITE_CLERK_PUBLISHABLE_KEY',
   STRIPE_KEY: 'VITE_STRIPE_PUBLISHABLE_KEY',
-  MAKE_WEBHOOK: 'VITE_MAKE_ONBOARDING_WEBHOOK',
   HCAPTCHA_KEY: 'VITE_HCAPTCHA_SITE_KEY',
+} as const;
+
+// Application routes
+export const ROUTES = {
+  HOME: '/',
+  SIGN_IN: '/sign-in',
+  SIGN_UP: '/sign-up',
+  REGISTER: '/register',
+  DASHBOARD: '/dashboard',
 } as const;

@@ -11,7 +11,7 @@ import { validateEnv } from './config/env';
 import { DiscoveryProvider } from './providers/DiscoveryProvider';
 
 export function App() {
-  // Validate environment variables
+  // Validate environment variables - this is looking at my .env file
   try {
     validateEnv();
   } catch (error) {

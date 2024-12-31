@@ -1,4 +1,4 @@
-import React from 'react';
+// import React from 'react';
 import { Link } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
 import { Bell, Settings } from 'lucide-react';
@@ -18,7 +18,7 @@ export function TopNav() {
             </Link>
             <div className="h-6 w-px bg-gray-300/30" />
             <span className="text-lg font-semibold text-white">
-              TechCXO Sales Agent
+              TechCXO Ai Sales Agent
             </span>
           </div>
 
