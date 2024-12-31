@@ -41,30 +41,51 @@ export function validateSolutionResponse(data: unknown): data is SolutionRespons
       return false;
     }
 
-    // Check all required string fields
+    // Validation for string fields
     const requiredStrings = [
       sd.transformation_journey.current_situation,
-      sd.transformation_journey.challenges,
       sd.transformation_journey.vision,
       sd.solution_recommendation.overview,
-      sd.solution_recommendation.key_components,
-      sd.solution_recommendation.approach,
       sd.value_proposition.business_outcomes,
-      sd.value_proposition.personal_benefits,
-      sd.value_proposition.risk_mitigation,
       sd.investment_summary.pricing_model,
       sd.investment_summary.roi_analysis,
-      sd.investment_summary.timeline,
       response.testimonials.caseSituation1,
-      response.testimonials.caseSolution1,
-      response.testimonials.caseValue1,
       response.testimonials.caseSituation2,
-      response.testimonials.caseSolution2,
-      response.testimonials.caseValue2,
       response.sessionId
     ];
 
-    return requiredStrings.every(field => typeof field === 'string');
+    // Validate string fields
+    const stringValidation = requiredStrings.every((field: string) => typeof field === 'string');
+
+    // Validate array fields
+    const arrayValidation = (
+      Array.isArray(sd.transformation_journey.challenges) &&
+      Array.isArray(sd.solution_recommendation.key_components) &&
+      Array.isArray(sd.solution_recommendation.approach) &&
+      Array.isArray(sd.value_proposition.personal_benefits) &&
+      Array.isArray(sd.value_proposition.risk_mitigation) &&
+      Array.isArray(sd.investment_summary.timeline) &&
+      Array.isArray(response.testimonials.caseSolution1) &&
+      Array.isArray(response.testimonials.caseValue1) &&
+      Array.isArray(response.testimonials.caseSolution2) &&
+      Array.isArray(response.testimonials.caseValue2)
+    );
+
+    // Additional validation to ensure array elements are strings
+    const arrayElementValidation = (
+      sd.transformation_journey.challenges.every((item: unknown) => typeof item === 'string') &&
+      sd.solution_recommendation.key_components.every((item: unknown) => typeof item === 'string') &&
+      sd.solution_recommendation.approach.every((item: unknown) => typeof item === 'string') &&
+      sd.value_proposition.personal_benefits.every((item: unknown) => typeof item === 'string') &&
+      sd.value_proposition.risk_mitigation.every((item: unknown) => typeof item === 'string') &&
+      sd.investment_summary.timeline.every((item: unknown) => typeof item === 'string') &&
+      response.testimonials.caseSolution1.every((item: unknown) => typeof item === 'string') &&
+      response.testimonials.caseValue1.every((item: unknown) => typeof item === 'string') &&
+      response.testimonials.caseSolution2.every((item: unknown) => typeof item === 'string') &&
+      response.testimonials.caseValue2.every((item: unknown) => typeof item === 'string')
+    );
+
+    return stringValidation && arrayValidation && arrayElementValidation;
     
   } catch (error) {
     // If any access to properties fails, validation fails

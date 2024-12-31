@@ -13,32 +13,32 @@ type SolutionWebhookResponse = {
   solution_description: {
     transformation_journey: {
       current_situation: string;
-      challenges: string;
+      challenges: string[];
       vision: string;
     };
     solution_recommendation: {
       overview: string;
-      key_components: string;
-      approach: string;
+      key_components: string[];
+      approach: string[];
     };
     value_proposition: {
       business_outcomes: string;
-      personal_benefits: string;
-      risk_mitigation: string;
+      personal_benefits: string[];
+      risk_mitigation: string[];
     };
     investment_summary: {
       pricing_model: string;
       roi_analysis: string;
-      timeline: string;
+      timeline: string[];
     };
   };
   testimonials: {
     caseSituation1: string;
-    caseSolution1: string;
-    caseValue1: string;
+    caseSolution1: string[];
+    caseValue1: string[];
     caseSituation2: string;
-    caseSolution2: string;
-    caseValue2: string;
+    caseSolution2: string[];
+    caseValue2: string[];
   };
   sessionId: string;
 };
@@ -58,32 +58,32 @@ function parseSolutionDescription(response: SolutionWebhookResponse): SolutionRe
     solution_description: {
       transformation_journey: {
         current_situation: response.solution_description?.transformation_journey?.current_situation || '',
-        challenges: response.solution_description?.transformation_journey?.challenges || '',
+        challenges: response.solution_description?.transformation_journey?.challenges || [],
         vision: response.solution_description?.transformation_journey?.vision || ''
       },
       solution_recommendation: {
         overview: response.solution_description?.solution_recommendation?.overview || '',
-        key_components: response.solution_description?.solution_recommendation?.key_components || '',
-        approach: response.solution_description?.solution_recommendation?.approach || ''
+        key_components: response.solution_description?.solution_recommendation?.key_components || [],
+        approach: response.solution_description?.solution_recommendation?.approach || []
       },
       value_proposition: {
         business_outcomes: response.solution_description?.value_proposition?.business_outcomes || '',
-        personal_benefits: response.solution_description?.value_proposition?.personal_benefits || '',
-        risk_mitigation: response.solution_description?.value_proposition?.risk_mitigation || ''
+        personal_benefits: response.solution_description?.value_proposition?.personal_benefits || [],
+        risk_mitigation: response.solution_description?.value_proposition?.risk_mitigation || []
       },
       investment_summary: {
         pricing_model: response.solution_description?.investment_summary?.pricing_model || '',
         roi_analysis: response.solution_description?.investment_summary?.roi_analysis || '',
-        timeline: response.solution_description?.investment_summary?.timeline || ''
+        timeline: response.solution_description?.investment_summary?.timeline || []
       }
     },
     testimonials: {
       caseSituation1: response.testimonials?.caseSituation1 || '',
-      caseSolution1: response.testimonials?.caseSolution1 || '',
-      caseValue1: response.testimonials?.caseValue1 || '',
+      caseSolution1: response.testimonials?.caseSolution1 || [],
+      caseValue1: response.testimonials?.caseValue1 || [],
       caseSituation2: response.testimonials?.caseSituation2 || '',
-      caseSolution2: response.testimonials?.caseSolution2 || '',
-      caseValue2: response.testimonials?.caseValue2 || ''
+      caseSolution2: response.testimonials?.caseSolution2 || [],
+      caseValue2: response.testimonials?.caseValue2 || []
     },
     sessionId: response.sessionId || Date.now().toString()
   };

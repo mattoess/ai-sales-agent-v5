@@ -28,39 +28,39 @@ export interface ProspectInfo {
 }
 
 // Detailed solution response with rich, HTML-formatted content
+// In discovery.ts
 export interface SolutionResponse {
   solution_description: {
     transformation_journey: {
-      current_situation: string;  // HTML-formatted description of the current situation
-      challenges: string;         // HTML-formatted list of existing challenges
-      vision: string;             // HTML-formatted description of the desired future state
+      current_situation: string;
+      challenges: string[];
+      vision: string;
     };
     solution_recommendation: {
-      overview: string;          // High-level solution overview
-      key_components: string;    // Detailed components of the proposed solution
-      approach: string;          // Structured approach to implementing the solution
+      overview: string;
+      key_components: string[];
+      approach: string[];
     };
     value_proposition: {
-      business_outcomes: string;  // Expected business-level results
-      personal_benefits: string;  // Benefits for individual stakeholders
-      risk_mitigation: string;   // Strategies to address potential risks
+      business_outcomes: string;
+      personal_benefits: string[];
+      risk_mitigation: string[];
     };
     investment_summary: {
-      pricing_model: string;     // Breakdown of solution costs
-      roi_analysis: string;      // Return on investment analysis
-      timeline: string;          // Implementation timeline
+      pricing_model: string;
+      roi_analysis: string;
+      timeline: string[];
     };
   };
   testimonials: {
-    // Detailed case studies with HTML formatting
-    caseSituation1: string;   // First case study's current situation
-    caseSolution1: string;    // First case study's solution implementation
-    caseValue1: string;       // First case study's results and impact
-    caseSituation2: string;   // Second case study's current situation
-    caseSolution2: string;    // Second case study's solution implementation
-    caseValue2: string;       // Second case study's results and impact
+    caseSituation1: string;
+    caseSolution1: string[];
+    caseValue1: string[];
+    caseSituation2: string;
+    caseSolution2: string[];
+    caseValue2: string[];
   };
-  sessionId: string; // Unique identifier for the solution generation session
+  sessionId: string;
 }
 
 // Comprehensive state representing the entire discovery and solution process
