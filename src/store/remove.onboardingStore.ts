@@ -7,7 +7,9 @@ const initialState: OnboardingState = {
     firstName: '',
     lastName: '',
     email: '',
-    companyName: ''
+    companyName: '',
+    clerkUserId: '',
+    clientId: ''
   }
 };
 
@@ -15,6 +17,7 @@ export const useOnboardingStore = create<{
   onboarding: OnboardingState;
   setOnboarded: (value: boolean) => void;
   updateOnboardingData: (data: Partial<OnboardingState['data']>) => void;
+  setClientData: (clientId: string, clerkUserId: string) => void;
 }>((set) => ({
   onboarding: initialState,
   setOnboarded: (value) =>
@@ -26,6 +29,17 @@ export const useOnboardingStore = create<{
       onboarding: {
         ...state.onboarding,
         data: { ...state.onboarding.data, ...data },
+      },
+    })),
+  setClientData: (clientId, clerkUserId) =>
+    set((state) => ({
+      onboarding: {
+        ...state.onboarding,
+        data: {
+          ...state.onboarding.data,
+          clientId,
+          clerkUserId
+        },
       },
     })),
 }));

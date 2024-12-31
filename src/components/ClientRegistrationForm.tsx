@@ -1,49 +1,63 @@
-import React, { useState } from 'react';
-import { useOnboardingStore } from '../store/onboardingStore';
-import { useDiscoveryStore } from '../store/discoveryStore';
-import { createClient } from '../services/onboardingService';
+import React, { useState, useEffect } from 'react';
+import { useClientStore } from '../store/clientStore';
+import { createClient } from '../services/clientService';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { Logo } from './Logo';
+import { useUser } from '@clerk/clerk-react';
 
-export const OnboardingForm: React.FC = () => {
+export const ClientRegistrationForm: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useUser();
   
-  const { onboardingData, updateOnboardingData, setOnboarded } = useOnboardingStore(
+  const { clientData, updateClientData, setRegistered, setClientData } = useClientStore(
     (state) => ({
-      onboardingData: state.onboarding.data,
-      updateOnboardingData: state.updateOnboardingData,
-      setOnboarded: state.setOnboarded,
+      clientData: state.client.data,
+      updateClientData: state.updateClientData,
+      setRegistered: state.setRegistered,
+      setClientData: state.setClientData,
     })
   );
 
-  const updateProspectInfo = useDiscoveryStore((state) => state.updateProspectInfo);
+  useEffect(() => {
+    if (user) {
+      updateClientData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.primaryEmailAddress?.emailAddress || '',
+      });
+    }
+  }, [user, updateClientData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user?.id) {
+      setError('User authentication required');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      const result = await createClient(onboardingData);
+      const result = await createClient({
+        firstName: clientData.firstName || '',
+        lastName: clientData.lastName || '',
+        email: clientData.email || '',
+        companyName: clientData.companyName || '',
+        clerkUserId: user.id
+      });
       
-      if (result.status === 'success') {
-        // Update discovery store with prospect info
-        updateProspectInfo({
-          firstName: onboardingData.firstName,
-          lastName: onboardingData.lastName,
-          email: onboardingData.email,
-          clientId: result.clientId,
-        });
-
-        setOnboarded(true);
+      if (result.status === 'success' && result.clientId) {
+        setClientData(result.clientId, user.id);
+        setRegistered(true);
       } else {
         setError(result.message || 'Failed to create account. Please try again.');
       }
     } catch (error) {
       setError('Failed to create account. Please try again.');
-      console.error('Onboarding error:', error);
+      console.error('Client registration error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -60,10 +74,10 @@ export const OnboardingForm: React.FC = () => {
         <div className="text-center">
           <Logo />
           <h2 className="mt-6 text-3xl font-extrabold text-techcxo-navy">
-            Welcome to TechCXO
+            Complete Your Registration
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Let's get started with your account setup
+            Please verify your information to complete setup
           </p>
         </div>
 
@@ -89,8 +103,8 @@ export const OnboardingForm: React.FC = () => {
                 type="text"
                 id="firstName"
                 required
-                value={onboardingData.firstName}
-                onChange={(e) => updateOnboardingData({ firstName: e.target.value })}
+                value={clientData.firstName}
+                onChange={(e) => updateClientData({ firstName: e.target.value })}
                 className="input-base"
                 placeholder="Enter your first name"
               />
@@ -104,8 +118,8 @@ export const OnboardingForm: React.FC = () => {
                 type="text"
                 id="lastName"
                 required
-                value={onboardingData.lastName}
-                onChange={(e) => updateOnboardingData({ lastName: e.target.value })}
+                value={clientData.lastName}
+                onChange={(e) => updateClientData({ lastName: e.target.value })}
                 className="input-base"
                 placeholder="Enter your last name"
               />
@@ -119,8 +133,8 @@ export const OnboardingForm: React.FC = () => {
                 type="email"
                 id="email"
                 required
-                value={onboardingData.email}
-                onChange={(e) => updateOnboardingData({ email: e.target.value })}
+                value={clientData.email}
+                onChange={(e) => updateClientData({ email: e.target.value })}
                 className="input-base"
                 placeholder="Enter your email address"
               />
@@ -134,8 +148,8 @@ export const OnboardingForm: React.FC = () => {
                 type="text"
                 id="companyName"
                 required
-                value={onboardingData.companyName}
-                onChange={(e) => updateOnboardingData({ companyName: e.target.value })}
+                value={clientData.companyName}
+                onChange={(e) => updateClientData({ companyName: e.target.value })}
                 className="input-base"
                 placeholder="Enter your company name"
               />
@@ -153,7 +167,7 @@ export const OnboardingForm: React.FC = () => {
                 Creating Account...
               </>
             ) : (
-              'Get Started'
+              'Complete Registration'
             )}
           </button>
         </motion.form>
