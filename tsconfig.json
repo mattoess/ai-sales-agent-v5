@@ -18,11 +18,12 @@
     "noFallthroughCasesInSwitch": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,  // Add this line
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
     },
-    "types": ["node"] // Explicitly include only 'node' types
+    "types": ["node"]
   },
   "include": ["src"],
   "exclude": ["node_modules"]
