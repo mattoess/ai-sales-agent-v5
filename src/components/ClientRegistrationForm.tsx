@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useClientStore } from '../store/clientStore';
-import { createClient } from '../services/clientService';
+import { saveCompanySetup } from '../services/clientService';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { Logo } from './Logo';
@@ -41,13 +41,15 @@ export const ClientRegistrationForm: React.FC = () => {
     setError(null);
 
     try {
-      const result = await createClient({
+      const result = await saveCompanySetup({
         firstName: clientData.firstName || '',
         lastName: clientData.lastName || '',
         email: clientData.email || '',
         companyName: clientData.companyName || '',
-        clerkUserId: user.id
-      });
+        clerkUserId: user.id,
+        website: '',
+        industry: undefined
+      }, null); // no logo for initial registration
       
       if (result.status === 'success' && result.clientId) {
         setClientData(result.clientId, user.id);

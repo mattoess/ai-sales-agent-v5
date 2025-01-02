@@ -1,5 +1,4 @@
 // src/store/clientStore.ts
-
 import { create } from 'zustand';
 import { ClientState, ClientData } from '../types/client';
 
@@ -11,7 +10,11 @@ const initialState: ClientState = {
     email: '',
     companyName: '',
     clerkUserId: '',
-    clientId: ''
+    clientId: '',
+    status: 'inactive', // Added default status
+    website: '',
+    industry: undefined,
+    logo: undefined
   }
 };
 

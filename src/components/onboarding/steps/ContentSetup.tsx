@@ -11,7 +11,7 @@ interface UploadError {
 }
 
 export function ContentSetup({}: StepProps) {
-  const { onboarding, updateOnboardingData } = useOnboardingStore();
+  const { onboarding, addContent } = useOnboardingStore();
   const { uploadFiles } = useFileUpload();
   const [error, setError] = useState<UploadError | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -35,20 +35,12 @@ export function ContentSetup({}: StepProps) {
       const path = type === 'document' ? '/documents' : '/videos';
       await uploadFiles(files, path);
 
-      // Update onboarding store with new content
-      updateOnboardingData({
-        content: {
-          ...onboarding.data.content,
-          [type === 'document' ? 'documents' : 'videos']: [
-            ...(onboarding.data.content?.[type === 'document' ? 'documents' : 'videos'] || []),
-            {
-              id: Date.now().toString(),
-              title: files[0].name,
-              url: `${path}/${files[0].name}`,
-              type: type,
-              uploadedAt: new Date().toISOString()
-            }
-          ]
+      addContent({
+        type,
+        data: {
+          id: Date.now().toString(),
+          title: files[0].name,
+          url: `${path}/${files[0].name}`
         }
       });
 
@@ -78,19 +70,12 @@ export function ContentSetup({}: StepProps) {
       return;
     }
 
-    updateOnboardingData({
-      content: {
-        ...onboarding.data.content,
-        webResources: [
-          ...(onboarding.data.content?.webResources || []),
-          {
-            id: Date.now().toString(),
-            title,
-            url,
-            type: 'link',
-            addedAt: new Date().toISOString()
-          }
-        ]
+    addContent({
+      type: 'link',
+      data: {
+        id: Date.now().toString(),
+        title,
+        url
       }
     });
 
