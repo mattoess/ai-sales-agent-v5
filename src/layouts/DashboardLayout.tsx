@@ -7,6 +7,7 @@ import { useUser } from '@clerk/clerk-react';
 import { useOnboardingStore } from '../store/onboardingStore';
 import { OnboardingModal } from '../components/onboarding/OnboardingModal';
 import { ONBOARDING_STEPS } from '../types/onboarding';  // Added ONBOARDING_STEPS import
+import { Toaster } from '../components/ui/toaster';  // Add this import
 
 export function DashboardLayout() {
   const { user } = useUser();
@@ -49,6 +50,7 @@ export function DashboardLayout() {
         isOpen={showOnboarding} 
         onClose={handleCloseOnboarding}
       />
+      <Toaster />
     </div>
   );
 }

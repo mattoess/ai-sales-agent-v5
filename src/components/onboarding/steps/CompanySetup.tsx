@@ -33,19 +33,7 @@ const INDUSTRY_OPTIONS: IndustryType[] = [
     'Other'
 ];
 
-const showNotification = (message: string) => {
-    const notification = document.createElement('div');
-    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50 animate-fade-in';
-    notification.textContent = message;
-    document.body.appendChild(notification);
-  
-    setTimeout(() => {
-      notification.classList.add('animate-fade-out');
-      setTimeout(() => {
-        document.body.removeChild(notification);
-      }, 300);
-    }, 3000);
-  };
+
 export function CompanySetup({}: StepProps) {
   const { toast } = useToast();
   const { user } = useUser();
@@ -148,6 +136,11 @@ export function CompanySetup({}: StepProps) {
     if (!validateForm()) return;
     
     setIsSaving(true);
+    toast({
+      title: "Saving...",
+      description: "Uploading company information",
+    });
+    
     try {
       const response = await saveCompanySetup({
         ...onboarding.data,
@@ -156,15 +149,22 @@ export function CompanySetup({}: StepProps) {
         email: user?.emailAddresses[0]?.emailAddress || '',
         clerkUserId: user?.id || ''
       }, logoFile);
-
+  
       if (response.status === 'success' && response.clientId) {
         await updateOnboardingData({
           clientId: response.clientId,
           logo: response.newAccount?.logo
         });
-
-        showNotification('Company information saved successfully');
-        setCurrentStep(3); // Move to Team Setup
+  
+        toast({
+          title: "Success",
+          description: "Company information saved successfully. Proceeding to next step...",
+        });
+        
+        // Small delay to allow toast to be seen
+        setTimeout(() => {
+          setCurrentStep(3); // Move to Team Setup
+        }, 500);
       } else {
         setErrors(prev => ({
           ...prev,
