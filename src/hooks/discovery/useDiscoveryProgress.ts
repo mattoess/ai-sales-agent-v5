@@ -104,7 +104,19 @@ export function useDiscoveryProgress() {
           setStage(6);
           break;
         }
+
+      case 6: {
+        console.log('Stage 6: Completing discovery session');
+        // No additional validation needed at this stage
+        // Just return true to allow StageNavigation to handle session creation
+        return true;
       }
+    
+      default: {
+        console.log('Unknown stage:', stage);
+        throw new Error('Invalid stage');
+      }
+    }
 
       console.log('✅ Stage navigation successful');
       return true;

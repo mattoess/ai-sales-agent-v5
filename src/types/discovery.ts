@@ -65,6 +65,7 @@ export interface SolutionResponse {
 
 // Comprehensive state representing the entire discovery and solution process
 export interface DiscoveryState {
+  startTime?: string;
   currentState: {
     barriers: string[];        // Specific barriers identified
     financialImpact: string;   // Financial implications of current barriers

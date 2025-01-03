@@ -1,3 +1,4 @@
+// src/components/discovery/DiscoveryModal.tsx
 import React from 'react';
 import { X } from 'lucide-react';
 import { ProspectInfoStep } from './ProspectInfoStep';
@@ -7,7 +8,7 @@ import { ThemesReview } from '../ThemesReview';
 import { SolutionReview } from '../SolutionReview';
 import { FinalAnalysis } from '../FinalAnalysis';
 import { ProgressBar } from '../ProgressBar';
-import { StageNavigation } from './StageNavigation';
+import { StageNavigation } from '../StageNavigation';
 import { useDiscoveryStore } from '../../store/discoveryStore';
 
 interface DiscoveryModalProps {
@@ -49,6 +50,7 @@ const devData = {
 };
 
 export function DiscoveryModal({ isOpen, onClose, sessionId }: DiscoveryModalProps) {
+  const [isSaving, setIsSaving] = React.useState(false);
   const stage = useDiscoveryStore(state => state.discovery.stage);
   const { updateCurrentState, updateFutureState, updateProspectInfo } = useDiscoveryStore();
   
@@ -65,6 +67,17 @@ export function DiscoveryModal({ isOpen, onClose, sessionId }: DiscoveryModalPro
       }
     }
   }, [isOpen, updateCurrentState, updateFutureState, updateProspectInfo]);
+
+  const handleComplete = React.useCallback(() => {
+    console.log('🏁 Modal handling completion');
+    setIsSaving(false);
+    onClose();
+  }, [onClose]);
+
+  const handleStartSave = React.useCallback(() => {
+    console.log('💾 Starting save process');
+    setIsSaving(true);
+  }, []);
 
   const renderStageContent = () => {
     console.log('Rendering stage:', stage);
@@ -91,7 +104,12 @@ export function DiscoveryModal({ isOpen, onClose, sessionId }: DiscoveryModalPro
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" onClick={onClose} />
+        <div 
+          className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75" 
+          onClick={() => {
+            if (!isSaving) onClose();
+          }} 
+        />
 
         <div className="inline-block w-full max-w-4xl my-8 overflow-hidden text-left align-middle transition-all transform bg-white rounded-lg shadow-xl">
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
@@ -100,7 +118,8 @@ export function DiscoveryModal({ isOpen, onClose, sessionId }: DiscoveryModalPro
             </h2>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-500 focus:outline-none"
+              disabled={isSaving}
+              className="text-gray-400 hover:text-gray-500 focus:outline-none disabled:opacity-50"
             >
               <X className="w-6 h-6" />
             </button>
@@ -113,8 +132,19 @@ export function DiscoveryModal({ isOpen, onClose, sessionId }: DiscoveryModalPro
             </div>
           </div>
 
+          {isSaving && (
+            <div className="px-6 py-3 bg-blue-50 border-t border-blue-100">
+              <p className="text-sm text-blue-600">
+                Saving discovery session...
+              </p>
+            </div>
+          )}
+
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-            <StageNavigation onComplete={onClose} />
+            <StageNavigation 
+              onComplete={handleComplete}
+              onStartSave={handleStartSave}
+            />
           </div>
         </div>
       </div>

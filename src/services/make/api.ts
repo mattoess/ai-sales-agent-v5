@@ -19,7 +19,8 @@ export async function makeApiRequest<T>(
     const id = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
-      console.log('Making fetch request to:', endpoint);
+      console.log('🌐 Making fetch request to:', endpoint);
+      console.log('📦 Payload:', JSON.stringify(payload, null, 2));
       
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -36,46 +37,48 @@ export async function makeApiRequest<T>(
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      console.log('Response status:', response.status);
+      console.log('✅ Response status:', response.status);
       const data = await response.json();
-      console.log('Raw response data:', data);
+      console.log('📄 Raw response data:', data);
 
       // Let the service handle specific validations
       const isValid = validateResponse(data);
-      console.log('Validation result:', isValid);
-      console.log('Data type:', typeof data);
-      console.log('Is array?', Array.isArray(data));
+      console.log('🔍 Validation result:', isValid);
+      console.log('📋 Data type:', typeof data);
+      console.log('📊 Is array?', Array.isArray(data));
       if (Array.isArray(data) && data.length > 0) {
-        console.log('First item:', data[0]);
-        console.log('First item body type:', typeof data[0]?.body);
+        console.log('📎 First item:', data[0]);
+        console.log('📌 First item body type:', typeof data[0]?.body);
       }
 
       if (!isValid) {
+        console.error('❌ Validation failed for response:', data);
         throw new ValidationError('Response validation failed');
       }
 
       return data;
     } catch (error) {
+      attempt++;
+      
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
-          console.error('Request timed out');
+          console.error('⏱️ Request timed out');
         } else {
-          console.error(`Attempt ${attempt + 1} failed:`, error);
+          console.error(`❌ Attempt ${attempt} failed:`, error);
           if (error instanceof ValidationError) {
-            console.error('Validation details:', error.message);
+            console.error('🚫 Validation details:', error.message);
           }
         }
       }
 
-      attempt++;
-
       if (attempt >= maxAttempts) {
-        console.error('Max attempts reached');
+        console.error('🔴 Max attempts reached');
         return null;
       }
 
       // Exponential backoff delay
       const delay = Math.min(delayMs * Math.pow(2, attempt - 1), maxDelayMs);
+      console.log(`⏳ Retrying in ${delay}ms...`);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
