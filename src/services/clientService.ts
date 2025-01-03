@@ -2,7 +2,6 @@
 import { MAKE_CONFIG } from './make/config';
 import type { ClientResponse } from '../types/client';
 import type { OnboardingData } from '../types/onboarding';
-import { saveCompanySetup } from './clientService';
 
 export async function saveCompanySetup(data: OnboardingData, logoFile: File | null): Promise<ClientResponse> {
   try {
@@ -19,9 +18,13 @@ export async function saveCompanySetup(data: OnboardingData, logoFile: File | nu
     formData.append('industry', data.industry || '');
     formData.append('timestamp', new Date().toISOString());
     
-    // Add the logo file if it exists
-    if (logoFile) {
+    // Add the logo file and path if it exists
+    if (logoFile && data.clerkUserId) {
+      const logoPath = `company-logos/${data.clerkUserId}/${logoFile.name}`;
+      formData.append('logoPath', logoPath);
       formData.append('logo', logoFile);
+      formData.append('logoName', logoFile.name);
+      formData.append('logoType', logoFile.type);
     }
 
     const response = await fetch(MAKE_CONFIG.urls.client, {
@@ -34,7 +37,14 @@ export async function saveCompanySetup(data: OnboardingData, logoFile: File | nu
     if (response.status === 201 || response.status === 200) {
       return {
         status: 'success',
-        ...result
+        ...result,
+        newAccount: {
+          ...result.newAccount,
+          logo: result.newAccount?.logo ? {
+            ...result.newAccount.logo,
+            path: `/company-logos/${data.clerkUserId}/${logoFile?.name}` // Ensure frontend has correct path
+          } : undefined
+        }
       };
     }
 
@@ -76,6 +86,11 @@ export async function getClientByClerkId(clerkUserId: string): Promise<ClientRes
         clerkUserId,
         requestedClerkId: clerkUserId
       };
+    }
+
+    // Ensure logo path is correct for frontend
+    if (result.status === 'success' && result.logo?.path) {
+      result.logo.path = `/${result.logo.path}`; // Ensure path starts with /
     }
 
     return {

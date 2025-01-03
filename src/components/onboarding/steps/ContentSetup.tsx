@@ -11,7 +11,7 @@ interface UploadError {
 }
 
 export function ContentSetup({}: StepProps) {
-  const { onboarding, addContent } = useOnboardingStore();
+  const { addContent } = useOnboardingStore();
   const { uploadFiles } = useFileUpload();
   const [error, setError] = useState<UploadError | null>(null);
   const [isUploading, setIsUploading] = useState(false);

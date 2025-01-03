@@ -1,8 +1,8 @@
 // src/types/common.ts
 export interface LogoAttachment {
-    id: string;           // Attachment ID from storage/airtable
+ //   id: string;           // Unique identifier (e.g., airtable attachment id)
     name: string;         // Original filename
-    size?: number;        // File size in bytes
+    path: string;         // Stored path (/company-logos/{clientId}/{filename})
     type?: string;        // MIME type
     uploadedAt: string;   // Timestamp
 }

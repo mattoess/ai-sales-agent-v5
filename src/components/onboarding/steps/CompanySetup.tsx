@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { saveCompanySetup } from '../../../services/clientService';
 import { Button } from '../../../components/ui/button';
 import { useUser } from '@clerk/clerk-react';
+import { useToast } from '../../../components/ui/use-toast';
 
 interface ValidationErrors {
   companyName?: string;
@@ -32,12 +33,25 @@ const INDUSTRY_OPTIONS: IndustryType[] = [
     'Other'
 ];
 
+const showNotification = (message: string) => {
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded shadow-lg z-50 animate-fade-in';
+    notification.textContent = message;
+    document.body.appendChild(notification);
+  
+    setTimeout(() => {
+      notification.classList.add('animate-fade-out');
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 300);
+    }, 3000);
+  };
 export function CompanySetup({}: StepProps) {
+  const { toast } = useToast();
   const { user } = useUser();
   const { onboarding, updateOnboardingData, setCurrentStep } = useOnboardingStore();
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<ValidationErrors>({});
-  const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const validateField = (name: string, value: string): string | undefined => {
@@ -71,9 +85,9 @@ export function CompanySetup({}: StepProps) {
     return !Object.values(newErrors).some(error => error !== undefined);
   };
 
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files?.length) return;
+    if (!files?.length || !user?.id) return;
 
     const file = files[0];
     if (file.size > 10 * 1024 * 1024) {
@@ -87,6 +101,16 @@ export function CompanySetup({}: StepProps) {
     }
 
     setLogoFile(file);
+    const logoPath = `/company-logos/${user.id}/${file.name}`;
+    
+    updateOnboardingData({ 
+      logo: {
+        name: file.name,
+        path: logoPath,
+        type: file.type,
+        uploadedAt: new Date().toISOString()
+      }
+    });
     setErrors(prev => ({ ...prev, logo: undefined }));
   };
 
@@ -133,11 +157,13 @@ export function CompanySetup({}: StepProps) {
         clerkUserId: user?.id || ''
       }, logoFile);
 
-      if (response.status === 'success') {
-        updateOnboardingData({
+      if (response.status === 'success' && response.clientId) {
+        await updateOnboardingData({
           clientId: response.clientId,
           logo: response.newAccount?.logo
         });
+
+        showNotification('Company information saved successfully');
         setCurrentStep(3); // Move to Team Setup
       } else {
         setErrors(prev => ({
@@ -167,7 +193,7 @@ export function CompanySetup({}: StepProps) {
   };
 
   const renderLogoPreview = () => {
-    if (isUploading) {
+    if (isSaving) {
       return <Loader2 className="mx-auto h-12 w-12 text-gray-400 animate-spin" />;
     }
     
@@ -175,9 +201,27 @@ export function CompanySetup({}: StepProps) {
       return (
         <img 
           src={URL.createObjectURL(logoFile)}
-          alt="Company logo" 
+          alt="Company logo preview" 
           className="mx-auto h-24 w-24 object-contain"
         />
+      );
+    }
+
+    if (onboarding.data.logo?.path) {
+      return (
+        <div className="relative">
+          <img 
+            src={onboarding.data.logo.path}
+            alt="Company logo" 
+            className="mx-auto h-24 w-24 object-contain"
+            onError={() => {
+              setLogoFile(null);
+              updateOnboardingData({ 
+                logo: undefined 
+              });
+            }}
+          />
+        </div>
       );
     }
 
@@ -243,7 +287,7 @@ export function CompanySetup({}: StepProps) {
               {renderLogoPreview()}
               <div className="flex text-sm text-gray-600">
                 <label htmlFor="logo-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                  <span>{logoFile ? 'Change logo' : 'Upload a file'}</span>
+                  <span>{logoFile || onboarding.data.logo ? 'Change logo' : 'Upload a file'}</span>
                   <input
                     id="logo-upload"
                     name="logo-upload"
@@ -294,7 +338,7 @@ export function CompanySetup({}: StepProps) {
                 Saving...
               </>
             ) : (
-              'Next'
+              'Save Company Info & Continue'
             )}
           </Button>
         </div>

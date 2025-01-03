@@ -1,5 +1,5 @@
 // src/types/onboarding.ts
-import { BaseClientData, BaseResponse, LogoAttachment } from './common';
+import { BaseClientData, BaseResponse } from './common';
 
 // Document types
 export interface BaseResource {
