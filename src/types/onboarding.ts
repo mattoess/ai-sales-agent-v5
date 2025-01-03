@@ -1,54 +1,48 @@
 // src/types/onboarding.ts
-export interface OnboardingData {
-  firstName: string;
-  lastName: string;
+import { BaseClientData, BaseResponse } from './common';
+
+// Document types
+export interface BaseResource {
+  id: string;
+  title: string;
+  url: string;
+  uploadedAt: string;
+}
+
+export interface DocumentResource extends BaseResource {
+  type: 'document';
+}
+
+export interface VideoResource extends BaseResource {
+  type: 'video';
+}
+
+export interface WebResource extends BaseResource {
+  type: 'link';
+  addedAt: string;
+}
+
+interface TeamMember {
   email: string;
-  companyName: string;
-  clerkUserId?: string;
-  clientId?: string;
-  
-  // Company Setup
-  logoUrl?: string;
-  website?: string;
-  industry?: string;
-  
+  status: 'pending' | 'accepted';
+  invitedAt: string;
+}
+
+export interface OnboardingData extends BaseClientData {
   // Team Setup
-  invitedMembers?: {
-    email: string;
-    status: 'pending' | 'accepted';
-    invitedAt: string;
-  }[];
+  invitedMembers?: TeamMember[];
   
   // Content Setup
   content?: {
-    documents?: Array<{
-      id: string;
-      title: string;
-      url: string;
-      type: 'document';
-      uploadedAt: string;
-    }>;
-    videos?: Array<{
-      id: string;
-      title: string;
-      url: string;
-      type: 'video';
-      uploadedAt: string;
-    }>;
-    webResources?: Array<{
-      id: string;
-      title: string;
-      url: string;
-      type: 'link';
-      addedAt: string;
-    }>;
+    documents?: DocumentResource[];
+    videos?: VideoResource[];
+    webResources?: WebResource[];
   };
 }
 
-export interface OnboardingResponse {
+export interface OnboardingResponse extends BaseResponse {
   userId: string;
   clientId: string;
-  status: 'success' | 'error';
 }
 
 export interface OnboardingState {
@@ -66,14 +60,12 @@ export const ONBOARDING_STEPS = {
 
 export type OnboardingStepNumber = typeof ONBOARDING_STEPS[keyof typeof ONBOARDING_STEPS];
 
-// Component Props
 export interface WelcomeStepProps {
   onStepClick: (step: OnboardingStepNumber) => void;
 }
 
 export interface StepProps {}
 
-// Step Configuration
 export interface StepValidation {
   isValid: boolean;
   message?: string;

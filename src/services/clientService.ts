@@ -1,48 +1,61 @@
 // src/services/clientService.ts
 import { MAKE_CONFIG } from './make/config';
-import type { ClientData, ClientResponse } from '../types/client';
+import type { ClientResponse } from '../types/client';
+import type { OnboardingData } from '../types/onboarding';
 
-export async function createClient(data: Omit<ClientData, 'clientId'>): Promise<ClientResponse> {
+export async function saveCompanySetup(data: OnboardingData, logoFile: File | null): Promise<ClientResponse> {
   try {
+    const formData = new FormData();
+    
+    // Add all the text data
+    formData.append('action', 'saveCompanySetup');
+    formData.append('firstName', data.firstName);
+    formData.append('lastName', data.lastName);
+    formData.append('email', data.email);
+    formData.append('clerkUserId', data.clerkUserId || '');
+    formData.append('companyName', data.companyName);
+    formData.append('website', data.website || '');
+    formData.append('industry', data.industry || '');
+    formData.append('timestamp', new Date().toISOString());
+    
+    // Add the logo file and path if it exists
+    if (logoFile && data.clerkUserId) {
+      const logoPath = `company-logos/${data.clerkUserId}/${logoFile.name}`;
+      formData.append('logoPath', logoPath);
+      formData.append('logo', logoFile);
+      formData.append('logoName', logoFile.name);
+      formData.append('logoType', logoFile.type);
+    }
+
     const response = await fetch(MAKE_CONFIG.urls.client, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        action: 'createClient',
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        companyName: data.companyName,
-        clerkUserId: data.clerkUserId,
-        timestamp: new Date().toISOString()
-      })
+      body: formData
     });
 
     const result = await response.json();
 
-    // Handle 409 Conflict (existing user/email) as a normal flow, not an error
-    if (response.status === 409) {
-      return {
-        status: 'error',
-        ...result
-      };
-    }
-
-    // Handle 201 Created (success)
-    if (response.status === 201) {
+    if (response.status === 201 || response.status === 200) {
       return {
         status: 'success',
-        ...result
+        ...result,
+        newAccount: {
+          ...result.newAccount,
+          logo: result.newAccount?.logo ? {
+            ...result.newAccount.logo,
+            path: `/company-logos/${data.clerkUserId}/${logoFile?.name}` // Ensure frontend has correct path
+          } : undefined
+        }
       };
     }
 
-    return result;
+    return {
+      status: 'error',
+      message: result.message || 'Failed to save company setup',
+      ...result
+    };
 
   } catch (error) {
-    console.error('Client registration error:', error);
+    console.error('Company setup error:', error);
     return {
       status: 'error',
       message: error instanceof Error ? error.message : 'Unknown error occurred'
@@ -73,6 +86,11 @@ export async function getClientByClerkId(clerkUserId: string): Promise<ClientRes
         clerkUserId,
         requestedClerkId: clerkUserId
       };
+    }
+
+    // Ensure logo path is correct for frontend
+    if (result.status === 'success' && result.logo?.path) {
+      result.logo.path = `/${result.logo.path}`; // Ensure path starts with /
     }
 
     return {

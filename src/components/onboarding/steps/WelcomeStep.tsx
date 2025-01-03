@@ -43,7 +43,7 @@ export function WelcomeStep({ onStepClick }: WelcomeStepProps) {
   return (
     <div className="flex flex-col items-center justify-center py-8 text-center">
       <h1 className="text-3xl font-bold text-gray-900 mb-4 animate-fade-in">
-        Welcome to Discovery Studio, {user?.firstName}! 🚀
+        Welcome to Ai Discovery and Solution Studio, {user?.firstName}! 🚀
       </h1>
       
       <p className="text-lg text-gray-600 mb-8 max-w-2xl">
@@ -51,31 +51,46 @@ export function WelcomeStep({ onStepClick }: WelcomeStepProps) {
       </p>
 
       <div className="grid grid-cols-1 gap-6 w-full max-w-xl">
-        {steps.map(({ Icon, title, description, step, isRequired }, index) => (
-          <button
-            key={index}
-            onClick={() => onStepClick(step)}
-            className="text-left bg-blue-50 p-4 rounded-lg transform transition-all duration-200 hover:scale-105 hover:shadow-md cursor-pointer group w-full"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Icon className="h-6 w-6 text-blue-500 mr-3" />
-                <div>
-                  <h3 className="font-semibold text-blue-900">
-                    {title}
-                    {isRequired && <span className="text-red-500 ml-1">*</span>}
-                  </h3>
-                  <p className="text-blue-700">{description}</p>
+        {steps.map(({ Icon, title, description, step, isRequired }, index) => {
+          const isCompanySetup = step === ONBOARDING_STEPS.COMPANY_SETUP;
+          const buttonClasses = `
+            text-left p-4 rounded-lg transform transition-all duration-200 w-full
+            ${isCompanySetup ? 'bg-blue-50 hover:scale-105 hover:shadow-md cursor-pointer' : 'bg-gray-50 opacity-70 cursor-not-allowed'}
+            group
+          `;
+
+          return (
+            <button
+              key={index}
+              onClick={() => isCompanySetup && onStepClick(step)}
+              disabled={!isCompanySetup}
+              className={buttonClasses}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Icon className={`h-6 w-6 mr-3 ${isCompanySetup ? 'text-blue-500' : 'text-gray-400'}`} />
+                  <div>
+                    <h3 className={`font-semibold ${isCompanySetup ? 'text-blue-900' : 'text-gray-600'}`}>
+                      {title}
+                      {isRequired && <span className="text-red-500 ml-1">*</span>}
+                    </h3>
+                    <p className={isCompanySetup ? 'text-blue-700' : 'text-gray-500'}>
+                      {description}
+                    </p>
+                  </div>
                 </div>
+                {isCompanySetup && (
+                  <ArrowRight className="w-5 h-5 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                )}
               </div>
-              <ArrowRight className="w-5 h-5 text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
-          </button>
-        ))}
+            </button>
+          );
+        })}
       </div>
 
       <p className="mt-8 text-sm text-gray-500">
-        This will only take a few minutes. You can always update these settings later.
+        Let's start with setting up critical company information.  <br />
+        This will only take a few minutes. You can always update these settings later.<br />
         <br />
         <span className="text-red-500">*</span> Required steps
       </p>
