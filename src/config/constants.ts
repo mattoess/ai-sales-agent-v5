@@ -18,4 +18,5 @@ export const ROUTES = {
   SIGN_UP: '/sign-up',
   REGISTER: '/register',
   DASHBOARD: '/dashboard',
+  ONBOARDING_WELCOME: '/onboarding/welcome' // Add this line
 } as const;

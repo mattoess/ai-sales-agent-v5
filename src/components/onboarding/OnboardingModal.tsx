@@ -1,9 +1,13 @@
 // src/components/onboarding/OnboardingModal.tsx
-import { X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X, Loader2 } from 'lucide-react';
+import { useUser } from '@clerk/clerk-react';
 import { useOnboardingStore } from '../../store/onboardingStore';
 import { CompanySetup } from './steps/CompanySetup';
+import { MAKE_CONFIG } from '../../services/make/config';
 import { TeamSetup } from './steps/TeamSetup';
 import { ContentSetup } from './steps/ContentSetup';
+import { useToast } from '../../components/ui/use-toast';
 import { WelcomeStep } from './steps/WelcomeStep';
 import { 
   ONBOARDING_STEPS, 
@@ -27,7 +31,51 @@ interface StepConfig {
 }
 
 export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
-  const { onboarding, setCurrentStep, setOnboarded } = useOnboardingStore();
+  const { toast } = useToast();  // Add this line
+  const [isChecking, setIsChecking] = useState(true);
+  const { user } = useUser();
+  const { 
+    onboarding, 
+    setCurrentStep, 
+    setOnboarded, 
+    updateOnboardingData  // Add this
+  } = useOnboardingStore();
+
+  // Check for existing company data when modal opens
+  useEffect(() => {
+    if (isOpen && user) {
+      setIsChecking(true);
+      const checkExistingCompany = async () => {
+        try {
+          const response = await fetch(MAKE_CONFIG.urls.client, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              action: 'CHECK_COMPANY',
+              userId: user.id,
+            })
+          });
+          const data = await response.json();
+          
+          if (data.exists) {
+            console.log('Existing company found:', data);
+            // Update onboarding data with existing company info
+            updateOnboardingData(data.companyData);
+            setOnboarded(true);
+            onClose();
+          }
+        } catch (error) {
+          console.error('Error checking company:', error);
+        } finally {
+          setIsChecking(false);
+        }
+      };
+  
+      checkExistingCompany();
+    }
+  }, [isOpen, user, setOnboarded, onClose, updateOnboardingData]);
   
   const steps: StepConfig[] = [
     { 
@@ -87,20 +135,63 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
   const validateCurrentStep = (): boolean => {
     const step = steps.find(s => s.id === currentStep);
     if (!step) return true;
+    // For the final step (Content Setup), always return true since it's optional
+    if (currentStep === ONBOARDING_STEPS.CONTENT_SETUP) return true;
     return !step.isRequired || !step.validationFn || step.validationFn(onboarding.data);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < steps.length && validateCurrentStep()) {
       setCurrentStep(currentStep + 1);
-    } else if (currentStep === steps.length) {
-      const allValid = steps
+    } else if (currentStep === ONBOARDING_STEPS.CONTENT_SETUP) {  // Be explicit about final step
+      // Only validate required steps
+      const requiredStepsValid = steps
         .filter(step => step.isRequired)
         .every(step => !step.validationFn || step.validationFn(onboarding.data));
-
-      if (allValid) {
-        setOnboarded(true);
-        onClose();
+    
+      if (requiredStepsValid) {
+        try {
+          const response = await fetch(MAKE_CONFIG.urls.client, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              action: 'COMPLETE_ONBOARDING',
+              userId: user?.id,
+              onboardingData: onboarding.data
+            }),
+          });
+  
+          const result = await response.json();
+          
+          if (result.status === 'success') {
+            // Always proceed to dashboard on success
+            setOnboarded(true);
+            toast({
+              title: "Welcome to your workspace!",
+              description: "You can complete your setup anytime from the settings menu.",
+            });
+            onClose();
+          } else {
+            // Handle specific error case
+            toast({
+              title: "Note",
+              description: "Proceeding to dashboard. You can complete setup later.",
+            });
+            setOnboarded(true);
+            onClose();
+          }
+        } catch (error) {
+          console.error('Error saving onboarding progress:', error);
+          // Still allow proceeding to dashboard
+          toast({
+            title: "Welcome to your workspace!",
+            description: "Some settings couldn't be saved, but you can update them later.",
+          });
+          setOnboarded(true);
+          onClose();
+        }
       }
     }
   };
@@ -124,6 +215,17 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
   };
 
   if (!isOpen) return null;
+
+  if (isChecking) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="bg-white p-8 rounded-lg shadow-xl flex items-center gap-3">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <p>Checking company information...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -191,7 +293,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
               </button>
               <button
                 onClick={handleNext}
-                disabled={!validateCurrentStep()}
+                disabled={currentStep === steps.length && !validateCurrentStep()}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 {currentStep === steps.length ? 'Complete Setup' : 'Next'}

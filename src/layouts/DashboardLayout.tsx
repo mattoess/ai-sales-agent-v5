@@ -11,12 +11,25 @@ import { Toaster } from '../components/ui/toaster';  // Add this import
 
 export function DashboardLayout() {
   const { user } = useUser();
-  const { onboarding, updateOnboardingData, setCurrentStep } = useOnboardingStore();  // Added setCurrentStep
+  const { onboarding, updateOnboardingData, setCurrentStep } = useOnboardingStore();
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
-    // Check if user needs onboarding when component mounts
-    if (user && !onboarding.isOnboarded) {
+    if (!user) return;
+
+    console.log('Checking onboarding state:', {
+      isOnboarded: onboarding.isOnboarded,
+      userId: user.id,
+      hasData: !!onboarding.data.clerkUserId
+    });
+
+    // Only show onboarding if:
+    // 1. User is not onboarded AND
+    // 2. Either no existing data OR different user
+    if (!onboarding.isOnboarded && 
+        (!onboarding.data.clerkUserId || onboarding.data.clerkUserId !== user.id)) {
+      console.log('Initializing onboarding for new user');
+      
       // Pre-populate with Clerk user data
       updateOnboardingData({
         firstName: user.firstName || '',
@@ -24,10 +37,10 @@ export function DashboardLayout() {
         email: user.emailAddresses[0]?.emailAddress || '',
         clerkUserId: user.id
       });
-      setCurrentStep(ONBOARDING_STEPS.WELCOME);  // Set initial step
+      setCurrentStep(ONBOARDING_STEPS.WELCOME);
       setShowOnboarding(true);
     }
-  }, [user, onboarding.isOnboarded, updateOnboardingData, setCurrentStep]);
+  }, [user, onboarding.isOnboarded, onboarding.data.clerkUserId, updateOnboardingData, setCurrentStep]);
 
   const handleCloseOnboarding = () => {
     // Only allow closing if user completed onboarding or explicitly chooses to finish later

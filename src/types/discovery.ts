@@ -16,15 +16,17 @@ export interface DiscoveryResponse {
 
 // Comprehensive information about the prospect
 export interface ProspectInfo {
-  firstName: string; // Prospect's first name
-  lastName: string; // Prospect's last name
-  email: string; // Prospect's email address
-  companyName: string; // Prospect's company name
-  clientId?: string; // Identifier for the solution provider company
-  userId?: string; // Identifier for the solution provider user
-  industryType?: string; // Prospect's industry classification
-  companySize?: string; // Size of the prospect's company
-  urgencyLevel?: 'low' | 'medium' | 'high'; // Prospect's perceived urgency of solving their challenges
+  firstName: string;
+  lastName: string;
+  email: string;
+  companyName: string;
+  clientId?: string;
+  userID: string;         // Our internal unique identifier
+  clerkUserId: string;    // Clerk's user identifier
+  stripeCustomerId?: string; // Future Stripe customer ID
+  industryType?: string;
+  companySize?: string;
+  urgencyLevel?: 'low' | 'medium' | 'high';
 }
 
 // Detailed solution response with rich, HTML-formatted content
@@ -100,10 +102,12 @@ export interface DiscoveryState {
 
 // Represents a persistent discovery session with additional metadata
 export interface DiscoverySession extends Omit<DiscoveryState, 'stage'> {
-  id: string;                  // Unique identifier for the session
-  status: 'draft' | 'in_progress' | 'completed'; // Current status of the session
-  createdAt: string;           // Timestamp of session creation
-  updatedAt: string;           // Timestamp of last update
-  userId: string;              // User who created the session
-  companyId: string;           // Company associated with the session
+  id: string;
+  status: 'draft' | 'in_progress' | 'completed';
+  createdAt: string;
+  updatedAt: string;
+  userID: string;         // Our internal unique identifier
+  clerkUserId: string;    // Clerk's user identifier
+  stripeCustomerId?: string; // Future Stripe customer ID
+  companyId: string;
 }

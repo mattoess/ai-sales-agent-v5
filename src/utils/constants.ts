@@ -7,3 +7,11 @@ export const SOLUTION_OPTIONS = [
 ] as const;
 
 export type SolutionOption = typeof SOLUTION_OPTIONS[number];
+
+export const ROUTES = {
+  HOME: '/',
+  SIGN_IN: '/sign-in',
+  SIGN_UP: '/sign-up',
+  DASHBOARD: '/dashboard',
+  ONBOARDING_WELCOME: '/onboarding/welcome'
+} as const;

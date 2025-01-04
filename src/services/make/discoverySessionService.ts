@@ -51,25 +51,20 @@ const validateSessionLoadResponse = (data: unknown): data is SessionLoadResponse
 };
 
 // Helper functions
-const calculateSessionDuration = (discoveryState: DiscoveryState): string => {
+const calculateSessionDuration = (discoveryState: DiscoveryState): number => {
     try {
       if (!discoveryState.startTime) {
-        return "0:05"; // Default 5 minutes
+        return 5; // Default 5 minutes
       }
       const startTime = new Date(discoveryState.startTime);
       if (isNaN(startTime.getTime())) {
-        return "0:05";
+        return 5;
       }
       const endTime = new Date();
-      const durationInMinutes = Math.round((endTime.getTime() - startTime.getTime()) / 1000 / 60);
-      
-      // Format as h:mm
-      const hours = Math.floor(durationInMinutes / 60);
-      const minutes = durationInMinutes % 60;
-      return `${hours}:${minutes.toString().padStart(2, '0')}`;
+      return Math.round((endTime.getTime() - startTime.getTime()) / 1000 / 60); // Returns minutes as number
     } catch (error) {
       console.error('Error calculating session duration:', error);
-      return "0:05";
+      return 5;
     }
   };
 
@@ -138,7 +133,7 @@ export const generateSolution = async (
       email: discoveryState.prospectInfo.email,
       companyName: discoveryState.prospectInfo.companyName,
       clientId: discoveryState.prospectInfo.clientId,
-      userId: discoveryState.prospectInfo.userId,
+      userID: discoveryState.prospectInfo.userID, // Changed from userId to userID
       industryType: discoveryState.prospectInfo.industryType,
       companySize: discoveryState.prospectInfo.companySize?.toString(),
       urgencyLevel: discoveryState.prospectInfo.urgencyLevel,
@@ -173,10 +168,6 @@ export const createSession = async (
     discoveryState: DiscoveryState,
     solution: SolutionResponse
   ): Promise<Session> => {
-    console.log('🚀 Creating session - Starting process');
-    console.log('📝 Discovery State:', discoveryState);
-    console.log('💡 Solution:', solution);
-  
     const session: Session = {
       id: crypto.randomUUID(),
       prospectName: `${discoveryState.prospectInfo?.firstName || ''} ${discoveryState.prospectInfo?.lastName || ''}`.trim() || 'Unknown',
@@ -184,7 +175,10 @@ export const createSession = async (
       status: 'completed',
       date: new Date().toISOString(),
       duration: calculateSessionDuration(discoveryState),
-      assignedUser: discoveryState.prospectInfo?.userId || 'Unknown',
+      assignedUser: discoveryState.prospectInfo?.userID || 'Unknown',
+      userID: discoveryState.prospectInfo?.userID || 'Unknown',       // Add userID
+      clerkUserId: discoveryState.prospectInfo?.clerkUserId || 'Unknown', // Add clerkUserId
+      stripeCustomerId: discoveryState.prospectInfo?.stripeCustomerId, // Add Stripe
     };
   
     console.log('📋 Created session object:', session);
@@ -238,7 +232,9 @@ export const createSession = async (
       status: 'completed',
       createdAt: response.data.session.date,
       updatedAt: new Date().toISOString(),
-      userId: response.data.session.assignedUser,
+      userID: response.data.session.userID || '',
+      clerkUserId: response.data.session.clerkUserId || '',
+      stripeCustomerId: response.data.session.stripeCustomerId || '',
       companyId: response.data.session.companyName
     };
   };

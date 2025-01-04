@@ -1,5 +1,6 @@
 // src/store/onboardingStore.ts
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { 
   OnboardingState, 
   ONBOARDING_STEPS,
@@ -7,6 +8,7 @@ import {
   VideoResource,
   WebResource 
 } from '../types/onboarding';
+// import { ClientRole } from '../types/client';
 
 const initialState: OnboardingState = {
   isOnboarded: false,
@@ -18,6 +20,7 @@ const initialState: OnboardingState = {
     companyName: '',
     clerkUserId: '',
     clientId: '',
+    userID: '',           // Keep this
     website: '',
     industry: undefined,
     invitedMembers: [],
@@ -41,87 +44,102 @@ interface OnboardingStore {
   }) => void;
 }
 
-export const useOnboardingStore = create<OnboardingStore>((set) => ({
-  onboarding: initialState,
-  
-  setOnboarded: (value: boolean) => 
-    set((state) => ({
-      onboarding: {
-        ...state.onboarding,
-        isOnboarded: value
-      }
-    })),
-
-  updateOnboardingData: (data) =>
-    set((state) => ({
-      onboarding: {
-        ...state.onboarding,
-        data: {
-          ...state.onboarding.data,
-          ...data
-        }
-      }
-    })),
-
-  setCurrentStep: (step: number) =>
-    set((state) => ({
-      onboarding: {
-        ...state.onboarding,
-        currentStep: step
-      }
-    })),
-
-  addInvitedMember: (email: string) =>
-    set((state) => ({
-      onboarding: {
-        ...state.onboarding,
-        data: {
-          ...state.onboarding.data,
-          invitedMembers: [
-            ...(state.onboarding.data.invitedMembers || []),
-            {
-              email,
-              status: 'pending',
-              invitedAt: new Date().toISOString()
-            }
-          ]
-        }
-      }
-    })),
-
-  addContent: (content) =>
-    set((state) => ({
-      onboarding: {
-        ...state.onboarding,
-        data: {
-          ...state.onboarding.data,
-          content: {
-            ...state.onboarding.data.content,
-            ...(content.type === 'link' 
-              ? { 
-                  webResources: [
-                    ...(state.onboarding.data.content?.webResources || []),
-                    {
-                      ...content.data,
-                      type: 'link' as const,
-                      uploadedAt: new Date().toISOString(),
-                      addedAt: new Date().toISOString()
-                    } as WebResource
-                  ]
-                }
-              : { 
-                  [`${content.type}s`]: [
-                    ...(state.onboarding.data.content?.[`${content.type}s`] || []),
-                    {
-                      ...content.data,
-                      type: content.type,
-                      uploadedAt: new Date().toISOString()
-                    } as DocumentResource | VideoResource
-                  ]
-                }
-            )
+export const useOnboardingStore = create<OnboardingStore>()(
+  persist(
+    (set) => ({
+      onboarding: initialState,
+      
+      setOnboarded: (value: boolean) => 
+        set((state) => ({
+          onboarding: {
+            ...state.onboarding,
+            isOnboarded: value
           }
+        })),
+
+      updateOnboardingData: (data) =>
+        set((state) => ({
+          onboarding: {
+            ...state.onboarding,
+            data: {
+              ...state.onboarding.data,
+              ...data
+            }
+          }
+        })),
+
+      setCurrentStep: (step: number) =>
+        set((state) => ({
+          onboarding: {
+            ...state.onboarding,
+            currentStep: step
+          }
+        })),
+
+      addInvitedMember: (email: string) =>
+        set((state) => ({
+          onboarding: {
+            ...state.onboarding,
+            data: {
+              ...state.onboarding.data,
+              invitedMembers: [
+                ...(state.onboarding.data.invitedMembers || []),
+                {
+                  email,
+                  status: 'pending',
+                  invitedAt: new Date().toISOString()
+                }
+              ]
+            }
+          }
+        })),
+
+      addContent: (content) =>
+        set((state) => ({
+          onboarding: {
+            ...state.onboarding,
+            data: {
+              ...state.onboarding.data,
+              content: {
+                ...state.onboarding.data.content,
+                ...(content.type === 'link' 
+                  ? { 
+                      webResources: [
+                        ...(state.onboarding.data.content?.webResources || []),
+                        {
+                          ...content.data,
+                          type: 'link' as const,
+                          uploadedAt: new Date().toISOString(),
+                          addedAt: new Date().toISOString()
+                        } as WebResource
+                      ]
+                    }
+                  : { 
+                      [`${content.type}s`]: [
+                        ...(state.onboarding.data.content?.[`${content.type}s`] || []),
+                        {
+                          ...content.data,
+                          type: content.type,
+                          uploadedAt: new Date().toISOString()
+                        } as DocumentResource | VideoResource
+                      ]
+                    }
+                )
+              }
+            }
+          }
+        }))
+    }),
+    {
+      name: 'onboarding-storage',
+      partialize: (state) => ({ 
+        onboarding: {
+          isOnboarded: state.onboarding.isOnboarded,
+          data: state.onboarding.data,
+          currentStep: state.onboarding.currentStep
         }
-      }
-    }))
-}));
+      }),
+      version: 1 // Add version for future migrations if needed
+    }
+  )
+);

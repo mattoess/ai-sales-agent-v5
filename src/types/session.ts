@@ -7,8 +7,11 @@ export interface Session {
   companyName: string;
   status: 'in_progress' | 'completed' | 'abandoned';
   date: string;
-  duration: string; // Changed from number to string
+  duration: number; 
   assignedUser: string;
+  userID: string;         // Our internal unique identifier
+  clerkUserId: string;    // Clerk's user identifier
+  stripeCustomerId?: string; // Future Stripe customer ID
 }
 
 export interface SessionWithData extends Session {

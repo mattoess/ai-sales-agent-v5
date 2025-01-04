@@ -1,10 +1,9 @@
 // src/types/common.ts
-export interface LogoAttachment {
- //   id: string;           // Unique identifier (e.g., airtable attachment id)
-    name: string;         // Original filename
-    path: string;         // Stored path (/company-logos/{clientId}/{filename})
-    type?: string;        // MIME type
-    uploadedAt: string;   // Timestamp
+export interface LogoInfo {
+    name: string;
+    path: string;    // URL path to the logo in public folder
+    type?: string;
+    uploadedAt: string;
 }
 
 export type IndustryType =
@@ -30,7 +29,7 @@ export interface BaseClientData {
     clientId?: string;
     website?: string;
     industry?: IndustryType;
-    logo?: LogoAttachment;
+    logo?: LogoInfo;  // Changed from LogoAttachment to LogoInfo
 }
 
 export interface BaseResponse {
