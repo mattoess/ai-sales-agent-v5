@@ -7,7 +7,7 @@ export interface Session {
   companyName: string;
   status: 'in_progress' | 'completed' | 'abandoned';
   date: string;
-  duration: string; // Changed from number to string
+  duration: number; 
   assignedUser: string;
 }
 

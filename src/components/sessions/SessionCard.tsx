@@ -1,7 +1,9 @@
-import React from 'react';
+// src/components/sessions/SessionCard.tsx
+// import React from 'react';
 import { Calendar, Clock, User, Building, ArrowRight } from 'lucide-react';
 import { Session } from '../../types/session';
 import { useDiscovery } from '../../providers/DiscoveryProvider';
+import { formatDuration, formatDate } from '../../utils/formatters';
 
 interface SessionCardProps {
   session: Session;
@@ -14,7 +16,7 @@ export function SessionCard({ session }: SessionCardProps) {
     switch (status.toLowerCase()) {
       case 'completed':
         return 'bg-green-100 text-green-800';
-      case 'in progress':
+      case 'in_progress':
         return 'bg-blue-100 text-blue-800';
       case 'scheduled':
         return 'bg-yellow-100 text-yellow-800';
@@ -44,15 +46,15 @@ export function SessionCard({ session }: SessionCardProps) {
         <div className="space-y-2 mb-4">
           <div className="flex items-center text-sm text-gray-600">
             <Calendar className="w-4 h-4 mr-2" />
-            {session.date}
+            {formatDate(session.date)}
           </div>
           <div className="flex items-center text-sm text-gray-600">
             <Clock className="w-4 h-4 mr-2" />
-            {session.duration}
+            {formatDuration(session.duration)} {/* Duration in minutes formatted as h:mm */}
           </div>
           <div className="flex items-center text-sm text-gray-600">
             <User className="w-4 h-4 mr-2" />
-            {session.assignedTo}
+            {session.assignedUser}
           </div>
         </div>
 

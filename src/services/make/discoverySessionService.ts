@@ -51,25 +51,20 @@ const validateSessionLoadResponse = (data: unknown): data is SessionLoadResponse
 };
 
 // Helper functions
-const calculateSessionDuration = (discoveryState: DiscoveryState): string => {
+const calculateSessionDuration = (discoveryState: DiscoveryState): number => {
     try {
       if (!discoveryState.startTime) {
-        return "0:05"; // Default 5 minutes
+        return 5; // Default 5 minutes
       }
       const startTime = new Date(discoveryState.startTime);
       if (isNaN(startTime.getTime())) {
-        return "0:05";
+        return 5;
       }
       const endTime = new Date();
-      const durationInMinutes = Math.round((endTime.getTime() - startTime.getTime()) / 1000 / 60);
-      
-      // Format as h:mm
-      const hours = Math.floor(durationInMinutes / 60);
-      const minutes = durationInMinutes % 60;
-      return `${hours}:${minutes.toString().padStart(2, '0')}`;
+      return Math.round((endTime.getTime() - startTime.getTime()) / 1000 / 60); // Returns minutes as number
     } catch (error) {
       console.error('Error calculating session duration:', error);
-      return "0:05";
+      return 5;
     }
   };
 
