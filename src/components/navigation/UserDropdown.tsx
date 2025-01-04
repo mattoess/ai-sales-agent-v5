@@ -1,20 +1,22 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { SignOutButton } from '@clerk/clerk-react';
-import { User as ClerkUser } from '@clerk/clerk-react';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { SignOutButton, useUser } from '@clerk/clerk-react';
 import { 
-  User,
+  User as UserIcon,
   Settings,
   CreditCard,
   LogOut
 } from 'lucide-react';
 
 interface UserDropdownProps {
-  user: ClerkUser;
+  user: ReturnType<typeof useUser>['user']
 }
 
 export function UserDropdown({ user }: UserDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  if (!user) return null;
 
   return (
     <div className="relative">
@@ -50,7 +52,7 @@ export function UserDropdown({ user }: UserDropdownProps) {
             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
             onClick={() => setIsOpen(false)}
           >
-            <User className="w-4 h-4 mr-3" />
+            <UserIcon className="w-4 h-4 mr-3" />
             Profile
           </Link>
 
@@ -73,7 +75,7 @@ export function UserDropdown({ user }: UserDropdownProps) {
           </Link>
 
           <div className="border-t">
-            <SignOutButton>
+            <SignOutButton signOutCallback={() => navigate('/')}>
               <button className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                 <LogOut className="w-4 h-4 mr-3" />
                 Sign out

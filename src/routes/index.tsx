@@ -1,12 +1,41 @@
 // src/routes/index.tsx
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { SignedIn, useUser } from '@clerk/clerk-react';
 import { DashboardLayout } from '../layouts/DashboardLayout';
 import { Dashboard } from '../pages/Dashboard';
 import { LandingPage } from '../components/landing/LandingPage';
 import { ROUTES } from '../config/constants';
 import { Loader2 } from 'lucide-react';
-import { OnboardingModal } from '../components/onboarding/OnboardingModal';
+import { useOnboardingStore } from '../store/onboardingStore';
+import { ONBOARDING_STEPS } from '../types/onboarding';
+import { useEffect } from 'react';
+
+// Separate component for onboarding route
+function OnboardingRedirect() {
+  const { user } = useUser();
+  const navigate = useNavigate();
+  const { setCurrentStep, updateOnboardingData } = useOnboardingStore();
+
+  useEffect(() => {
+    if (user) {
+      // Pre-populate with Clerk user data
+      updateOnboardingData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.emailAddresses[0]?.emailAddress || '',
+        clerkUserId: user.id
+      });
+      setCurrentStep(ONBOARDING_STEPS.WELCOME);
+      navigate(ROUTES.DASHBOARD);
+    }
+  }, [user, updateOnboardingData, setCurrentStep, navigate]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="w-8 h-8 animate-spin text-techcxo-green" />
+    </div>
+  );
+}
 
 export function AppRoutes() {
   const { isLoaded, isSignedIn } = useUser();
@@ -34,15 +63,12 @@ export function AppRoutes() {
         }
       />
 
-      {/* Protected Onboarding Route - Replace Registration */}
+      {/* Protected Onboarding Route */}
       <Route
         path={ROUTES.ONBOARDING_WELCOME}
         element={
           <SignedIn>
-            <OnboardingModal 
-              isOpen={true} 
-              onClose={() => {/* Handle close */}}
-            />
+            <OnboardingRedirect />
           </SignedIn>
         }
       />
