@@ -1,7 +1,7 @@
 // src/types/onboarding.ts
 import { BaseClientData, BaseResponse } from './common';
 
-// Document types
+// Document types stay the same...
 export interface BaseResource {
   id: string;
   title: string;
@@ -29,10 +29,8 @@ interface TeamMember {
 }
 
 export interface OnboardingData extends BaseClientData {
-  // Team Setup
+  userID?: string;         // Added for user identification
   invitedMembers?: TeamMember[];
-  
-  // Content Setup
   content?: {
     documents?: DocumentResource[];
     videos?: VideoResource[];
@@ -41,7 +39,8 @@ export interface OnboardingData extends BaseClientData {
 }
 
 export interface OnboardingResponse extends BaseResponse {
-  userId: string;
+  status: 'success' | 'error';
+  userID: string;        // Added to match our new structure
   clientId: string;
 }
 

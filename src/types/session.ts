@@ -9,6 +9,9 @@ export interface Session {
   date: string;
   duration: number; 
   assignedUser: string;
+  userID: string;         // Our internal unique identifier
+  clerkUserId: string;    // Clerk's user identifier
+  stripeCustomerId?: string; // Future Stripe customer ID
 }
 
 export interface SessionWithData extends Session {

@@ -57,7 +57,7 @@ export const clerkConfig = {
   } as Theme,
   
   // Post-authentication redirects
-  afterSignUpUrl: ROUTES.REGISTER,    // New users go to registration
+  afterSignUpUrl: ROUTES.ONBOARDING_WELCOME,    // New users go to onboarding
   afterSignInUrl: ROUTES.DASHBOARD,   // Existing users go to dashboard
   
   // Allowed redirect origins

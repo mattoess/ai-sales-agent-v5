@@ -4,9 +4,9 @@ import { SignedIn, useUser } from '@clerk/clerk-react';
 import { DashboardLayout } from '../layouts/DashboardLayout';
 import { Dashboard } from '../pages/Dashboard';
 import { LandingPage } from '../components/landing/LandingPage';
-import { ProtectedClientRegistration } from '../components/auth/ProtectedClientRegistration';
 import { ROUTES } from '../config/constants';
 import { Loader2 } from 'lucide-react';
+import { OnboardingModal } from '../components/onboarding/OnboardingModal';
 
 export function AppRoutes() {
   const { isLoaded, isSignedIn } = useUser();
@@ -34,12 +34,15 @@ export function AppRoutes() {
         }
       />
 
-      {/* Protected Registration Route */}
+      {/* Protected Onboarding Route - Replace Registration */}
       <Route
-        path={ROUTES.REGISTER}
+        path={ROUTES.ONBOARDING_WELCOME}
         element={
           <SignedIn>
-            <ProtectedClientRegistration />
+            <OnboardingModal 
+              isOpen={true} 
+              onClose={() => {/* Handle close */}}
+            />
           </SignedIn>
         }
       />

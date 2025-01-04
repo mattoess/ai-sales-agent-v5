@@ -133,7 +133,7 @@ export const generateSolution = async (
       email: discoveryState.prospectInfo.email,
       companyName: discoveryState.prospectInfo.companyName,
       clientId: discoveryState.prospectInfo.clientId,
-      userId: discoveryState.prospectInfo.userId,
+      userID: discoveryState.prospectInfo.userID, // Changed from userId to userID
       industryType: discoveryState.prospectInfo.industryType,
       companySize: discoveryState.prospectInfo.companySize?.toString(),
       urgencyLevel: discoveryState.prospectInfo.urgencyLevel,
@@ -168,10 +168,6 @@ export const createSession = async (
     discoveryState: DiscoveryState,
     solution: SolutionResponse
   ): Promise<Session> => {
-    console.log('🚀 Creating session - Starting process');
-    console.log('📝 Discovery State:', discoveryState);
-    console.log('💡 Solution:', solution);
-  
     const session: Session = {
       id: crypto.randomUUID(),
       prospectName: `${discoveryState.prospectInfo?.firstName || ''} ${discoveryState.prospectInfo?.lastName || ''}`.trim() || 'Unknown',
@@ -179,7 +175,10 @@ export const createSession = async (
       status: 'completed',
       date: new Date().toISOString(),
       duration: calculateSessionDuration(discoveryState),
-      assignedUser: discoveryState.prospectInfo?.userId || 'Unknown',
+      assignedUser: discoveryState.prospectInfo?.userID || 'Unknown',
+      userID: discoveryState.prospectInfo?.userID || 'Unknown',       // Add userID
+      clerkUserId: discoveryState.prospectInfo?.clerkUserId || 'Unknown', // Add clerkUserId
+      stripeCustomerId: discoveryState.prospectInfo?.stripeCustomerId, // Add Stripe
     };
   
     console.log('📋 Created session object:', session);
@@ -233,7 +232,9 @@ export const createSession = async (
       status: 'completed',
       createdAt: response.data.session.date,
       updatedAt: new Date().toISOString(),
-      userId: response.data.session.assignedUser,
+      userID: response.data.session.userID || '',
+      clerkUserId: response.data.session.clerkUserId || '',
+      stripeCustomerId: response.data.session.stripeCustomerId || '',
       companyId: response.data.session.companyName
     };
   };

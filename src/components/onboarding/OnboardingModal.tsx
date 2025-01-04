@@ -7,6 +7,7 @@ import { CompanySetup } from './steps/CompanySetup';
 import { MAKE_CONFIG } from '../../services/make/config';
 import { TeamSetup } from './steps/TeamSetup';
 import { ContentSetup } from './steps/ContentSetup';
+import { useToast } from '../../components/ui/use-toast';
 import { WelcomeStep } from './steps/WelcomeStep';
 import { 
   ONBOARDING_STEPS, 
@@ -30,6 +31,7 @@ interface StepConfig {
 }
 
 export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
+  const { toast } = useToast();  // Add this line
   const [isChecking, setIsChecking] = useState(true);
   const { user } = useUser();
   const { 
@@ -133,18 +135,21 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
   const validateCurrentStep = (): boolean => {
     const step = steps.find(s => s.id === currentStep);
     if (!step) return true;
+    // For the final step (Content Setup), always return true since it's optional
+    if (currentStep === ONBOARDING_STEPS.CONTENT_SETUP) return true;
     return !step.isRequired || !step.validationFn || step.validationFn(onboarding.data);
   };
 
   const handleNext = async () => {
     if (currentStep < steps.length && validateCurrentStep()) {
       setCurrentStep(currentStep + 1);
-    } else if (currentStep === steps.length) {
-      const allValid = steps
+    } else if (currentStep === ONBOARDING_STEPS.CONTENT_SETUP) {  // Be explicit about final step
+      // Only validate required steps
+      const requiredStepsValid = steps
         .filter(step => step.isRequired)
         .every(step => !step.validationFn || step.validationFn(onboarding.data));
-  
-      if (allValid) {
+    
+      if (requiredStepsValid) {
         try {
           const response = await fetch(MAKE_CONFIG.urls.client, {
             method: 'POST',
@@ -158,20 +163,34 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
             }),
           });
   
-          if (!response.ok) {
-            throw new Error('Failed to complete onboarding');
-          }
-  
-          const data = await response.json();
-          if (data.success) {
+          const result = await response.json();
+          
+          if (result.status === 'success') {
+            // Always proceed to dashboard on success
             setOnboarded(true);
+            toast({
+              title: "Welcome to your workspace!",
+              description: "You can complete your setup anytime from the settings menu.",
+            });
             onClose();
           } else {
-            throw new Error(data.error || 'Failed to complete setup');
+            // Handle specific error case
+            toast({
+              title: "Note",
+              description: "Proceeding to dashboard. You can complete setup later.",
+            });
+            setOnboarded(true);
+            onClose();
           }
         } catch (error) {
-          console.error('Error completing onboarding:', error);
-          alert('Failed to complete setup. Please try again.');
+          console.error('Error saving onboarding progress:', error);
+          // Still allow proceeding to dashboard
+          toast({
+            title: "Welcome to your workspace!",
+            description: "Some settings couldn't be saved, but you can update them later.",
+          });
+          setOnboarded(true);
+          onClose();
         }
       }
     }
@@ -274,7 +293,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
               </button>
               <button
                 onClick={handleNext}
-                disabled={!validateCurrentStep()}
+                disabled={currentStep === steps.length && !validateCurrentStep()}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
               >
                 {currentStep === steps.length ? 'Complete Setup' : 'Next'}

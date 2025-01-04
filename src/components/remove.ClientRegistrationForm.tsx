@@ -46,10 +46,13 @@ export const ClientRegistrationForm: React.FC = () => {
         lastName: clientData.lastName || '',
         email: clientData.email || '',
         companyName: clientData.companyName || '',
+        userID: crypto.randomUUID(), // Generate unique userID
         clerkUserId: user.id,
+        stripeCustomerId: '', // Will be populated later
         website: '',
-        industry: undefined
-      }, null); // no logo for initial registration
+        industry: undefined,
+        verificationStatus: 'pending'
+      }, null);
       
       if (result.status === 'success' && result.clientId) {
         setClientData(result.clientId, user.id);
@@ -63,7 +66,7 @@ export const ClientRegistrationForm: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+};
 
   return (
     <motion.div 

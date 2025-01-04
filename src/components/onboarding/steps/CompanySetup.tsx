@@ -1,14 +1,16 @@
 // src/components/onboarding/steps/CompanySetup.tsx
 import { useState } from 'react';
 import { useOnboardingStore } from '../../../store/onboardingStore';
+import { useClientStore } from '../../../store/clientStore'; 
 import { Upload, Loader2, AlertCircle } from 'lucide-react';
 import { StepProps } from '../../../types/onboarding';
-import { IndustryType } from '../../../types/common';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select';
 import { saveCompanySetup } from '../../../services/clientService';
 import { Button } from '../../../components/ui/button';
 import { useUser } from '@clerk/clerk-react';
 import { useToast } from '../../../components/ui/use-toast';
+import { LogoInfo, IndustryType } from '../../../types/common';
+import { testCompanySetupWebhook } from '../../../utils/webhookTester';
 
 interface ValidationErrors {
   companyName?: string;
@@ -34,7 +36,7 @@ const INDUSTRY_OPTIONS: IndustryType[] = [
 ];
 
 
-export function CompanySetup({}: StepProps) {
+export function CompanySetup({}: StepProps): JSX.Element {
   const { toast } = useToast();
   const { user } = useUser();
   const { onboarding, updateOnboardingData, setCurrentStep } = useOnboardingStore();
@@ -91,16 +93,16 @@ export function CompanySetup({}: StepProps) {
     setLogoFile(file);
     const logoPath = `/company-logos/${user.id}/${file.name}`;
     
-    updateOnboardingData({ 
-      logo: {
-        name: file.name,
-        path: logoPath,
-        type: file.type,
-        uploadedAt: new Date().toISOString()
-      }
-    });
+    const logoInfo: LogoInfo = {
+      name: file.name,
+      path: logoPath,
+      type: file.type,
+      uploadedAt: new Date().toISOString()
+    };
+    
+    updateOnboardingData({ logo: logoInfo });
     setErrors(prev => ({ ...prev, logo: undefined }));
-  };
+};
 
   const handleCompanyInfoUpdate = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -136,9 +138,11 @@ export function CompanySetup({}: StepProps) {
     if (!validateForm()) return;
     
     setIsSaving(true);
+    const clientStore = useClientStore.getState();
+  
     toast({
       title: "Saving...",
-      description: "Uploading company information",
+      description: "Creating your workspace",
     });
     
     try {
@@ -148,34 +152,48 @@ export function CompanySetup({}: StepProps) {
         lastName: user?.lastName || '',
         email: user?.emailAddresses[0]?.emailAddress || '',
         clerkUserId: user?.id || ''
-      }, logoFile);
+      });
   
-      if (response.status === 'success' && response.clientId) {
+      if (response.status === 'success' && response.data) {
         await updateOnboardingData({
-          clientId: response.clientId,
-          logo: response.newAccount?.logo
+          clientId: response.data.clientId,
+          userID: response.data.userID,
+          logo: response.data.company.logo
+        });
+  
+        // Update client store with correct status mapping
+        clientStore.setClientData(
+          response.data.clientId,
+          user?.id || '',
+          response.data.userID
+        );
+  
+        clientStore.updateClientData({
+          role: response.data.user.role,
+          status: response.data.user.status === 'pending' ? 'inactive' : 'active',
+          verificationStatus: 'pending'
         });
   
         toast({
           title: "Success",
-          description: "Company information saved successfully. Proceeding to next step...",
+          description: "Your workspace has been created. Proceeding to next step...",
         });
         
-        // Small delay to allow toast to be seen
         setTimeout(() => {
-          setCurrentStep(3); // Move to Team Setup
+          setCurrentStep(3);
         }, 500);
       } else {
         setErrors(prev => ({
           ...prev,
-          submit: response.message
+          submit: response.message || 'Failed to create workspace'
         }));
       }
     } catch (error) {
       setErrors(prev => ({
         ...prev,
-        submit: 'Failed to save company setup. Please try again.'
+        submit: 'Failed to create workspace. Please try again.'
       }));
+      console.error('Error creating workspace:', error);
     } finally {
       setIsSaving(false);
     }
@@ -327,6 +345,13 @@ export function CompanySetup({}: StepProps) {
         </div>
 
         <div className="flex justify-end space-x-4 mt-6">
+          <Button
+            onClick={() => testCompanySetupWebhook()}
+            className="px-4 py-2 bg-gray-200"
+            type="button"
+          >
+            Test Webhook
+          </Button>
           <Button
             onClick={handleNext}
             disabled={isSaving}

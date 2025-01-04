@@ -3,33 +3,27 @@ import { MAKE_CONFIG } from './make/config';
 import type { ClientResponse } from '../types/client';
 import type { OnboardingData } from '../types/onboarding';
 
-export async function saveCompanySetup(data: OnboardingData, logoFile: File | null): Promise<ClientResponse> {
+export async function saveCompanySetup(data: OnboardingData): Promise<ClientResponse> {
   try {
-    const formData = new FormData();
-    
-    // Add all the text data
-    formData.append('action', 'saveCompanySetup');
-    formData.append('firstName', data.firstName);
-    formData.append('lastName', data.lastName);
-    formData.append('email', data.email);
-    formData.append('clerkUserId', data.clerkUserId || '');
-    formData.append('companyName', data.companyName);
-    formData.append('website', data.website || '');
-    formData.append('industry', data.industry || '');
-    formData.append('timestamp', new Date().toISOString());
-    
-    // Add the logo file and path if it exists
-    if (logoFile && data.clerkUserId) {
-      const logoPath = `company-logos/${data.clerkUserId}/${logoFile.name}`;
-      formData.append('logoPath', logoPath);
-      formData.append('logo', logoFile);
-      formData.append('logoName', logoFile.name);
-      formData.append('logoType', logoFile.type);
-    }
+    const payload = {
+      action: 'saveCompanySetup',
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      clerkUserId: data.clerkUserId || '',
+      companyName: data.companyName,
+      website: data.website || '',
+      industry: data.industry || '',
+      logo: data.logo, // Already in LogoInfo format
+      timestamp: new Date().toISOString()
+    };
 
     const response = await fetch(MAKE_CONFIG.urls.client, {
       method: 'POST',
-      body: formData
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload)
     });
 
     const result = await response.json();
@@ -37,21 +31,30 @@ export async function saveCompanySetup(data: OnboardingData, logoFile: File | nu
     if (response.status === 201 || response.status === 200) {
       return {
         status: 'success',
-        ...result,
-        newAccount: {
-          ...result.newAccount,
-          logo: result.newAccount?.logo ? {
-            ...result.newAccount.logo,
-            path: `/company-logos/${data.clerkUserId}/${logoFile?.name}` // Ensure frontend has correct path
-          } : undefined
+        data: {
+          userID: result.data.userID,
+          clientId: result.data.clientId,
+          company: {
+            name: result.data.company.name,
+            status: result.data.company.status,
+            logo: result.data.company.logo,
+            industry: result.data.company.industry,
+            website: result.data.company.website
+          },
+          user: {
+            email: result.data.user.email,
+            role: result.data.user.role,
+            status: result.data.user.status,
+            firstName: result.data.user.firstName,
+            lastName: result.data.user.lastName
+          }
         }
       };
     }
 
     return {
       status: 'error',
-      message: result.message || 'Failed to save company setup',
-      ...result
+      message: result.message || 'Failed to save company setup'
     };
 
   } catch (error) {
@@ -69,7 +72,6 @@ export async function getClientByClerkId(clerkUserId: string): Promise<ClientRes
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
       },
       body: JSON.stringify({ 
         action: 'getClient',
@@ -82,27 +84,40 @@ export async function getClientByClerkId(clerkUserId: string): Promise<ClientRes
     if (!response.ok) {
       return {
         status: 'error',
-        message: `Failed to fetch client data: ${result.message || response.statusText}`,
-        clerkUserId,
-        requestedClerkId: clerkUserId
+        message: `Failed to fetch client data: ${result.message || response.statusText}`
       };
     }
 
-    // Ensure logo path is correct for frontend
-    if (result.status === 'success' && result.logo?.path) {
-      result.logo.path = `/${result.logo.path}`; // Ensure path starts with /
+    if (result.status === 'success' && result.data) {
+      return {
+        status: 'success',
+        data: {
+          userID: result.data.userID,
+          clientId: result.data.clientId,
+          company: {
+            name: result.data.company.name,
+            status: result.data.company.status,
+            logo: result.data.company.logo
+          },
+          user: {
+            email: result.data.user.email,
+            role: result.data.user.role,
+            status: result.data.user.status,
+            firstName: result.data.user.firstName,
+            lastName: result.data.user.lastName
+          }
+        }
+      };
     }
 
     return {
-      status: 'success',
-      ...result
+      status: 'error',
+      message: 'Failed to fetch client data'
     };
   } catch (error) {
     return {
       status: 'error',
-      message: error instanceof Error ? error.message : 'Failed to fetch client data',
-      clerkUserId,
-      requestedClerkId: clerkUserId
+      message: error instanceof Error ? error.message : 'Failed to fetch client data'
     };
   }
 }

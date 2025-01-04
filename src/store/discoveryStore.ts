@@ -25,7 +25,9 @@ const initialState: DiscoveryState = {
     email: '',
     companyName: '',
     clientId: undefined,
-    userId: undefined,
+    userID: '',     // Add userID
+    clerkUserId: '', // Add clerkUserId
+    stripeCustomerId: '', // Add stripeCustomerId
     industryType: '',
     companySize: undefined,  
     urgencyLevel: undefined, 

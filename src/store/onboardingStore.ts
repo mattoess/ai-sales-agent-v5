@@ -8,6 +8,7 @@ import {
   VideoResource,
   WebResource 
 } from '../types/onboarding';
+// import { ClientRole } from '../types/client';
 
 const initialState: OnboardingState = {
   isOnboarded: false,
@@ -19,6 +20,7 @@ const initialState: OnboardingState = {
     companyName: '',
     clerkUserId: '',
     clientId: '',
+    userID: '',           // Keep this
     website: '',
     industry: undefined,
     invitedMembers: [],

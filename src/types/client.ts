@@ -1,7 +1,7 @@
 // src/types/client.ts
 import { BaseClientData, BaseResponse } from './common';
 
-export type ClientRole = 'owner' | 'admin' | 'user';
+export type ClientRole = 'Admin' | 'User';
 
 export interface ClientSettings {
     notifications: boolean;
@@ -13,33 +13,57 @@ export interface ClientSubscription {
     plan: 'free' | 'pro' | 'enterprise';
     status: 'active' | 'inactive' | 'trial';
     expiresAt?: string;
+    stripeSubscriptionId?: string;
+    stripePriceId?: string;
+    lastBillingDate?: string;
+    nextBillingDate?: string;
+}
+
+interface LogoInfo {
+    name: string;
+    path: string;    // URL path to the logo in public folder
+    type?: string;
+    uploadedAt: string;
 }
 
 export interface ClientData extends BaseClientData {
-    role?: ClientRole;
-    status?: 'active' | 'inactive'; // Made optional
-    lastLoginAt?: string;
-    settings?: ClientSettings;
-    subscription?: ClientSubscription;
+  userID?: string;         // Add this line
+  role?: ClientRole;
+  status?: 'active' | 'inactive';
+  lastLoginAt?: string;
+  settings?: ClientSettings;
+  subscription?: ClientSubscription;
+  verificationStatus?: 'pending' | 'verified' | 'failed';
 }
 
 export interface ExistingAccount extends BaseClientData {
     clientId: string;
+    userID: string;         // Our internal unique identifier
     clerkUserId: string;
-    status: 'active' | 'inactive'; // Kept required for existing accounts
+    stripeCustomerId?: string;
+    status: 'active' | 'inactive';
 }
 
 export interface ClientResponse extends BaseResponse {
-    code?: 'CLERK_ID_EXISTS' | 'EMAIL_EXISTS' | 'COMPANY_SETUP_COMPLETE';
-    clientId?: string;
-    clerkUserId?: string;
-    existingAccount?: ExistingAccount;
-    requestedClerkId?: string;
-    newAccount?: ClientData;
-    metadata?: {
-        createdAt: string;
-        environment: string;
-        onboardingStep?: string;
+    status: 'success' | 'error';
+    message?: string;
+    data?: {
+        userID: string;        // Airtable User Record ID
+        clientId: string;      // Airtable Company Record ID
+        company: {
+            name: string;
+            status: 'active' | 'pending';
+            logo?: LogoInfo;    // Changed from LogoAttachment to LogoInfo
+            industry?: string;
+            website?: string;
+        };
+        user: {
+            email: string;
+            role: ClientRole;
+            status: 'active' | 'pending';
+            firstName: string;
+            lastName: string;
+        };
     };
 }
 
