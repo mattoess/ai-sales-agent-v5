@@ -8,7 +8,6 @@ import {
   VideoResource,
   WebResource 
 } from '../types/onboarding';
-// import { ClientRole } from '../types/client';
 
 const initialState: OnboardingState = {
   isOnboarded: false,
@@ -20,7 +19,7 @@ const initialState: OnboardingState = {
     companyName: '',
     clerkUserId: '',
     clientId: '',
-    userID: '',           // Keep this
+    userID: '',
     website: '',
     industry: undefined,
     invitedMembers: [],
@@ -42,6 +41,7 @@ interface OnboardingStore {
     type: 'document' | 'video' | 'link', 
     data: Omit<DocumentResource | VideoResource | WebResource, 'type' | 'uploadedAt' | 'addedAt'>
   }) => void;
+  clearOnboarding: () => void; // Add this line
 }
 
 export const useOnboardingStore = create<OnboardingStore>()(
@@ -128,7 +128,10 @@ export const useOnboardingStore = create<OnboardingStore>()(
               }
             }
           }
-        }))
+        })),
+
+      // Add clear function
+      clearOnboarding: () => set({ onboarding: initialState })
     }),
     {
       name: 'onboarding-storage',
@@ -139,7 +142,7 @@ export const useOnboardingStore = create<OnboardingStore>()(
           currentStep: state.onboarding.currentStep
         }
       }),
-      version: 1 // Add version for future migrations if needed
+      version: 1
     }
   )
 );

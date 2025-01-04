@@ -38,15 +38,24 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
     onboarding, 
     setCurrentStep, 
     setOnboarded, 
-    updateOnboardingData  // Add this
+    updateOnboardingData,  
+    clearOnboarding  
   } = useOnboardingStore();
 
   // Check for existing company data when modal opens
+  // Focusing on the relevant part that needs to change
+// in OnboardingModal.tsx
+
+  // Modified useEffect for checking existing company
   useEffect(() => {
     if (isOpen && user) {
-      setIsChecking(true);
+      let isActive = true; // Add this flag for cleanup
+      
       const checkExistingCompany = async () => {
+        if (!isChecking) return; // Prevent running if already checked
+        
         try {
+          console.log('Checking for existing company...');
           const response = await fetch(MAKE_CONFIG.urls.client, {
             method: 'POST',
             headers: {
@@ -58,24 +67,46 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
             })
           });
           const data = await response.json();
+          console.log('CHECK_COMPANY response:', data);
           
+          // Only proceed if component is still mounted
+          if (!isActive) return;
+  
           if (data.exists) {
             console.log('Existing company found:', data);
-            // Update onboarding data with existing company info
             updateOnboardingData(data.companyData);
             setOnboarded(true);
             onClose();
+          } else {
+            console.log('No existing company found, clearing onboarding data');
+            clearOnboarding();
+            updateOnboardingData({
+              firstName: user.firstName || '',
+              lastName: user.lastName || '',
+              email: user.emailAddresses[0]?.emailAddress || '',
+              clerkUserId: user.id
+            });
           }
         } catch (error) {
           console.error('Error checking company:', error);
+          if (isActive) {
+            clearOnboarding();
+          }
         } finally {
-          setIsChecking(false);
+          if (isActive) {
+            setIsChecking(false);
+          }
         }
       };
   
       checkExistingCompany();
+  
+      // Cleanup function
+      return () => {
+        isActive = false;
+      };
     }
-  }, [isOpen, user, setOnboarded, onClose, updateOnboardingData]);
+  }, [isOpen, user]); // Only depend on isOpen and user
   
   const steps: StepConfig[] = [
     { 
@@ -151,6 +182,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
     
       if (requiredStepsValid) {
         try {
+          console.log('Starting COMPLETE_ONBOARDING request...');
           const response = await fetch(MAKE_CONFIG.urls.client, {
             method: 'POST',
             headers: {
@@ -162,19 +194,24 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
               onboardingData: onboarding.data
             }),
           });
-  
+        
           const result = await response.json();
+          console.log('Webhook response:', result);
+          console.log('Status check:', result.status === 'success'); // Log the condition check
           
           if (result.status === 'success') {
-            // Always proceed to dashboard on success
+            console.log('Entering success block');
             setOnboarded(true);
+            console.log('setOnboarded called');
             toast({
               title: "Welcome to your workspace!",
               description: "You can complete your setup anytime from the settings menu.",
             });
+            console.log('Toast called');
             onClose();
+            console.log('onClose called');
           } else {
-            // Handle specific error case
+            console.log('Entering error block');
             toast({
               title: "Note",
               description: "Proceeding to dashboard. You can complete setup later.",
@@ -184,7 +221,6 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
           }
         } catch (error) {
           console.error('Error saving onboarding progress:', error);
-          // Still allow proceeding to dashboard
           toast({
             title: "Welcome to your workspace!",
             description: "Some settings couldn't be saved, but you can update them later.",
@@ -194,7 +230,7 @@ export function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
         }
       }
     }
-  };
+  }
 
   const handlePrevious = () => {
     if (currentStep > 1) {
