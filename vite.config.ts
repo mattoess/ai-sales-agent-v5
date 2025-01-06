@@ -7,6 +7,12 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
+    },
+    extensions: ['.js', '.ts', '.jsx', '.tsx', '.json'] // Add this line
+  },
+  server: {
+    watch: {
+      usePolling: true
     }
   }
 });

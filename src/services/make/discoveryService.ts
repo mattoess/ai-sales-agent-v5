@@ -68,14 +68,15 @@ export async function sendDiscoveryData(discoveryData: DiscoveryState): Promise<
 
     // Create new AppError for other error types
     throw new AppError(
-      ErrorType.DISCOVERY,
+      ErrorType.API, // Changed from DISCOVERY to API
       'Failed to process discovery data',
       {
         originalError: error,
         details: {
           stage: discoveryData.stage,
           hasCurrentState: !!discoveryData.currentState,
-          hasFutureState: !!discoveryData.futureState
+          hasFutureState: !!discoveryData.futureState,
+          errorType: error instanceof Error ? error.name : typeof error
         }
       }
     );
@@ -84,40 +85,70 @@ export async function sendDiscoveryData(discoveryData: DiscoveryState): Promise<
 
 // Helper to determine if discovery data is valid for processing
 export function validateDiscoveryData(data: DiscoveryState): void {
-  if (!data.prospectInfo.industryType || !data.prospectInfo.companySize) {
+  const validationErrors: Record<string, boolean> = {};
+
+  // Check prospect information
+  if (!data.prospectInfo.industryType) {
+    validationErrors.industryType = true;
+  }
+  if (!data.prospectInfo.companySize) {
+    validationErrors.companySize = true;
+  }
+
+  if (Object.keys(validationErrors).length > 0) {
     throw new AppError(
       ErrorType.VALIDATION,
       'Missing required prospect information',
       {
         details: {
-          missing: {
-            industryType: !data.prospectInfo.industryType,
-            companySize: !data.prospectInfo.companySize
+          missing: validationErrors,
+          providedInfo: {
+            ...data.prospectInfo,
+            // Remove sensitive data
+            email: undefined,
+            phone: undefined
           }
         }
       }
     );
   }
 
+  // Check current state
   if (!data.currentState.barriers || data.currentState.barriers.length === 0) {
     throw new AppError(
       ErrorType.VALIDATION,
       'Current state barriers are required',
       {
         details: {
-          currentState: data.currentState
+          currentState: {
+            hasBarriers: false,
+            barriersCount: data.currentState.barriers?.length ?? 0,
+            otherFieldsPresent: {
+              hasFinancialImpact: !!data.currentState.financialImpact,
+              hasEmotionalImpact: !!data.currentState.emotionalImpact,
+              hasTargetDate: !!data.currentState.targetDate
+            }
+          }
         }
       }
     );
   }
 
+  // Check future state
   if (!data.futureState.desiredOutcomes || data.futureState.desiredOutcomes.length === 0) {
     throw new AppError(
       ErrorType.VALIDATION,
       'Future state outcomes are required',
       {
         details: {
-          futureState: data.futureState
+          futureState: {
+            hasOutcomes: false,
+            outcomesCount: data.futureState.desiredOutcomes?.length ?? 0,
+            otherFieldsPresent: {
+              hasFinancialImpact: !!data.futureState.financialImpact,
+              hasEmotionalRelief: !!data.futureState.emotionalRelief
+            }
+          }
         }
       }
     );

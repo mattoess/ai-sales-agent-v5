@@ -1,6 +1,7 @@
-import React from 'react';
-import { Video } from '../../types';
-import { Button } from '../../../../ui/button';
+// src/components/admin/content/shared/VideoUploader/VideoListItem.tsx
+// import React from 'react';
+import type { Video } from '../../types';  // Update path
+import { Button } from '@/components/ui/button';
 import { MoreVertical, Play, ExternalLink } from 'lucide-react';
 
 interface VideoListItemProps {
