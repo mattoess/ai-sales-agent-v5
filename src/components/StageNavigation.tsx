@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useDiscoveryProgress } from '../hooks/discovery/useDiscoveryProgress';
 import { useDiscoveryStore } from '../store/discoveryStore';
 import { useSessionStore } from '../store/sessionStore';
-import { createSession } from '../services/make/discoverySessionService';
+import { createSession } from '../services/make/DiscoverySessionService';
 
 interface StageNavigationProps {
   onComplete?: () => void;
