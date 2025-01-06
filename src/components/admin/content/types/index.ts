@@ -44,3 +44,18 @@ export interface Document {
     error?: ProcessingError;
   };
 }
+
+export interface Video {
+  id: string;
+  url: string;
+  title: string;
+  description?: string;
+  thumbnail?: string;
+  status?: 'pending' | 'processing' | 'embedded' | 'failed';
+  metadata?: {
+    duration?: string;
+    views?: number;
+    channel?: string;
+    publishDate?: string;
+  };
+}

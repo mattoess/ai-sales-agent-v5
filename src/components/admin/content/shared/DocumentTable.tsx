@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { FileText, Folder, RotateCcw, AlertCircle } from 'lucide-react';
-import { useDocumentStore } from './hooks/useDocumentStore';
+import { useDocumentStore } from '../hooks/useDocumentStore';
 import { useEmbeddingQueue } from '@/hooks/useEmbeddingQueue';
-import type { Document } from './types';
+import type { Document } from '../types';
 import { ErrorDisplay } from '@/components/ui/error-display';
 import { AppError, ErrorType } from '@/services/errors';
 
@@ -33,7 +33,7 @@ export function DocumentTable() {
   };
 
   const handleRetryAll = async () => {
-    const failedDocs = documents.filter(doc => doc.status === 'failed');
+    const failedDocs = documents.filter((doc: Document) => doc.status === 'failed');
     setProcessingError(null);
     
     try {
@@ -128,7 +128,7 @@ export function DocumentTable() {
             </tr>
           </thead>
           <tbody className="divide-y">
-            {documents.map((doc) => (
+          {documents.map((doc: Document) => (
               <tr key={doc.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
@@ -145,7 +145,7 @@ export function DocumentTable() {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">
-                    {doc.metadata?.solutions.map((solution, index) => (
+                  {doc.metadata?.solutions.map((solution: string, index: number) => (
                       <Badge key={index} variant="outline" className="text-xs">
                         {solution}
                       </Badge>
@@ -154,7 +154,7 @@ export function DocumentTable() {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">
-                    {doc.metadata?.industries.map((industry, index) => (
+                  {doc.metadata?.industries.map((industry: string, index: number) => (
                       <Badge key={index} variant="outline" className="text-xs">
                         {industry}
                       </Badge>

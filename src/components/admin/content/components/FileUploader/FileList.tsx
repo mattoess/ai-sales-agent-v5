@@ -1,13 +1,17 @@
-import React from 'react';
-import { Document } from '../../types';
+import type { Document } from '../../types';
 import { FileListItem } from './FileListItem';
 
 interface FileListProps {
   files: Document[];
-  onRemove: (id: string) => void;
+  onRemove?: (id: string) => void;
+  isLoading?: boolean;
 }
 
-export function FileList({ files, onRemove }: FileListProps) {
+export function FileList({ 
+  files, 
+  onRemove,
+  isLoading = false 
+}: FileListProps) {
   if (files.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -22,7 +26,8 @@ export function FileList({ files, onRemove }: FileListProps) {
         <FileListItem
           key={file.id}
           file={file}
-          onRemove={() => onRemove(file.id)}
+          onRemove={onRemove ? () => onRemove(file.id) : undefined}
+          disabled={isLoading}
         />
       ))}
     </div>

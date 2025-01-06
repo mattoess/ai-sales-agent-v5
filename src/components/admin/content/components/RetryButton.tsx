@@ -1,8 +1,10 @@
-// src/components/admin/content/components/RetryButton.tsx
-import React from 'react';
-import { RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Tooltip } from '@/components/ui/tooltip';
+import { RotateCcw } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface RetryButtonProps {
   onClick: () => void;
@@ -34,8 +36,13 @@ export function RetryButton({
 
   if (tooltipText) {
     return (
-      <Tooltip content={tooltipText}>
-        {button}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {button}
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>{tooltipText}</p>
+        </TooltipContent>
       </Tooltip>
     );
   }
