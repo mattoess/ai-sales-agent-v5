@@ -2,12 +2,7 @@ import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload } from 'lucide-react';
 import { AppError, ErrorType } from '@/services/errors';
-
-interface FileDropzoneProps {
-  onFileSelect: (files: File[]) => void;
-  onError?: (error: AppError) => void;
-  className?: string;
-}
+import type { SetStateAction, Dispatch } from 'react';
 
 const ACCEPTED_TYPES = {
   'application/pdf': ['.pdf'],
@@ -17,6 +12,12 @@ const ACCEPTED_TYPES = {
 
 const MAX_SIZE = 50 * 1024 * 1024; // 50MB
 
+interface FileDropzoneProps {
+  onFileSelect: (files: File[]) => void;
+  onError?: Dispatch<SetStateAction<AppError | null>>;
+  className?: string;
+}
+
 export function FileDropzone({ 
   onFileSelect,
   onError,
@@ -24,7 +25,6 @@ export function FileDropzone({
 }: FileDropzoneProps) {
   const handleDrop = useCallback((acceptedFiles: File[]) => {
     try {
-      // Additional validation if needed
       if (acceptedFiles.some(file => file.size > MAX_SIZE)) {
         throw new AppError(
           ErrorType.VALIDATION,

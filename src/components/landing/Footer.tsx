@@ -1,26 +1,32 @@
-import React from 'react';
-import { FooterSection } from './FooterSection';
+import FooterSection from './FooterSection';
 
-const sections = {
-  Product: ['Features', 'Pricing', 'Use Cases'],
-  Company: ['About', 'Contact', 'Careers'],
-  Resources: ['Blog', 'Documentation', 'Support'],
-  Legal: ['Privacy', 'Terms', 'Security']
-};
+const footerSections = [
+  {
+    title: "Product",
+    links: ["Features", "Use Cases", "Pricing", "About"]
+  },
+  {
+    title: "Resources",
+    links: ["Documentation", "Blog", "Support"]
+  },
+  {
+    title: "Company",
+    links: ["Contact", "Privacy", "Terms"]
+  }
+] as const;
 
-export function Footer() {
+export default function Footer() {
   return (
-    <footer className="bg-gray-50 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {Object.entries(sections).map(([title, links]) => (
-            <FooterSection key={title} title={title} links={links} />
+    <footer className="bg-gray-50 border-t border-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {footerSections.map((section) => (
+            <FooterSection
+              key={section.title}
+              title={section.title}
+              links={section.links}
+            />
           ))}
-        </div>
-        <div className="mt-8 pt-8 border-t border-gray-200">
-          <p className="text-gray-400 text-center">
-            © 2024 TechCXO. All rights reserved.
-          </p>
         </div>
       </div>
     </footer>

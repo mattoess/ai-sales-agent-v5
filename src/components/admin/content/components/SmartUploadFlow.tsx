@@ -4,7 +4,7 @@ import { useEmbeddingQueue } from '@/hooks/useEmbeddingQueue';
 import { Document, ContentType } from '../types';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileDropzone } from './FileDropzone';
+import { FileDropzone } from '../shared/FileDropzone';
 import { MetadataSelectors } from './MetadataSelectors';
 import { AppError, ErrorType } from '@/services/errors';
 
@@ -38,7 +38,9 @@ const CONTENT_TYPE_INFO: Record<ContentType, {
     description: 'Process documentation and methodological approaches',
     examples: ['Process Docs', 'Best Practices', 'Framework Guides']
   }
-};
+} as const;
+
+type MetadataWithoutNamespace = Omit<Document['metadata'], 'vectorNamespace'>;
 
 export function SmartUploadFlow() {
   const { user } = useUser();
@@ -113,10 +115,8 @@ export function SmartUploadFlow() {
     setError(null);
 
     try {
-      for (const file of selectedFiles) {
-        const document = createDocument(file);
-        await embedDocument(document);
-      }
+      const documents = selectedFiles.map(createDocument);
+      await Promise.all(documents.map(embedDocument));
 
       setSelectedFiles([]);
       setShowMetadata(false);
@@ -141,7 +141,7 @@ export function SmartUploadFlow() {
     }
   };
 
-  const handleMetadataChange = (newMetadata: Omit<Document['metadata'], 'vectorNamespace'>) => {
+  const handleMetadataChange = (newMetadata: MetadataWithoutNamespace) => {
     setMetadata({
       ...newMetadata,
       vectorNamespace: metadata.vectorNamespace
@@ -150,7 +150,11 @@ export function SmartUploadFlow() {
 
   return (
     <div className="space-y-6">
-      <FileDropzone onFileSelect={handleFileSelect} />
+      <FileDropzone 
+        onFileSelect={handleFileSelect}
+        onError={setError}
+        className="max-w-2xl mx-auto"
+      />
 
       {showMetadata && selectedFiles.length > 0 && (
         <div className="space-y-6">

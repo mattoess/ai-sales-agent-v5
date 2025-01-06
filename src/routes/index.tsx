@@ -4,7 +4,7 @@ import { SignedIn, useUser } from '@clerk/clerk-react';
 import { DashboardLayout } from '../layouts/DashboardLayout';
 import { Dashboard } from '../pages/Dashboard';
 import { ContentManager } from '../components/admin/ContentManager';
-import { LandingPage } from '../components/landing/LandingPage';
+import LandingPage from "../components/landing/LandingPage";
 import { ROUTES } from '../config/constants';
 import { Loader2 } from 'lucide-react';
 import { useOnboardingStore } from '../store/onboardingStore';
