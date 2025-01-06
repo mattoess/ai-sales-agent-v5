@@ -1,39 +1,46 @@
+export type DocumentStatus = 'not_embedded' | 'processing' | 'embedded' | 'failed' | 'waiting';
+export type ContentType = 'solution' | 'case_study' | 'technical' | 'pricing' | 'methodology';
+export type AudienceType = 'technical' | 'business' | 'executive';
+
+interface ProcessingError {
+  type: string;
+  message: string;
+  details?: Record<string, unknown>;
+}
+
 export interface Document {
   id: string;
   name: string;
   type: 'file' | 'folder';
   path: string;
   tags: string[];
-  status: 'not_embedded' | 'processing' | 'embedded' | 'failed' | 'waiting';
   size?: number;
   lastModified?: Date;
   file?: File;
-}
 
-export interface FileUploadProgress {
-  fileId: string;
-  progress: number;
-  status: 'uploading' | 'processing' | 'complete' | 'error';
-  error?: string;
-}
-
-export interface Video {
-  id: string;
-  url: string;
-  title: string;
-  description: string;
-  thumbnail: string;
-}
-
-export interface EmbedRequest {
-  id: string;
-  file: File;
+  clientId: string;
   userId: string;
-  companyId: string;
+  contentType: {
+    primary: ContentType;
+    subtype?: string;
+  };
   metadata: {
-    fileName: string;
-    fileSize: number;
-    uploadDate: string;
-    tags: string[];
+    solutions: string[];
+    industries: string[];
+    outcomes: string[];
+    audience: AudienceType[];
+    vectorNamespace: string;
+  };
+  status: DocumentStatus;
+  processingMetadata?: {
+    priority: 'high' | 'normal' | 'low';
+    vectorNamespace: string;
+    extractionFlags: {
+      pricing: boolean;
+      metrics: boolean;
+      methodology: boolean;
+    };
+    lastProcessed?: Date;
+    error?: ProcessingError;
   };
 }

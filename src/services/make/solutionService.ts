@@ -1,12 +1,17 @@
-// src/services/make/solutionService.ts
-
 import { DiscoveryState, SolutionResponse } from '../../types/discovery';
 import { makeApiRequest } from './api';
-import { ValidationError } from './errors';
+import { AppError, ErrorType } from '@/services/errors';  // Updated this import
 import { validateSolutionResponse } from './validation';
 import { solutionCache, getCacheKey } from './cache';
 import { MAKE_CONFIG } from './config';
 import { transformToApiFormatForSolution } from './transformers';
+
+// Create ValidationError class using AppError
+class ValidationError extends AppError {
+  constructor(message: string) {
+    super(ErrorType.VALIDATION, message);
+  }
+}
 
 // Type for Make.com webhook response
 type SolutionWebhookResponse = {

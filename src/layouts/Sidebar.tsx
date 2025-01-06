@@ -10,8 +10,9 @@ import {
   FileText
 } from 'lucide-react';
 
+// src/layouts/Sidebar.tsx
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }, // Updated from '/' to '/dashboard'
   { name: 'Discovery Sessions', href: '/sessions', icon: MessageSquare },
   { name: 'Team', href: '/settings/team', icon: Users },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },

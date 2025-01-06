@@ -1,6 +1,5 @@
 // src/services/make/api.ts
-
-import { ValidationError } from './errors';
+import { AppError, ErrorType } from '../errors';
 import { MAKE_CONFIG } from './config';
 
 export async function makeApiRequest<T>(
@@ -11,7 +10,7 @@ export async function makeApiRequest<T>(
   maxAttempts: number = MAKE_CONFIG.retry.maxAttempts,
   delayMs: number = MAKE_CONFIG.retry.delayMs,
   maxDelayMs: number = MAKE_CONFIG.retry.maxDelayMs
-): Promise<T | null> {
+): Promise<T> {
   let attempt = 0;
 
   while (attempt < maxAttempts) {
@@ -34,46 +33,51 @@ export async function makeApiRequest<T>(
       clearTimeout(id);
 
       if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        throw new AppError(ErrorType.API, `HTTP error! Status: ${response.status}`, {
+          statusCode: response.status,
+          details: { endpoint, attempt: attempt + 1 }
+        });
       }
 
       console.log('✅ Response status:', response.status);
       const data = await response.json();
       console.log('📄 Raw response data:', data);
 
-      // Let the service handle specific validations
-      const isValid = validateResponse(data);
-      console.log('🔍 Validation result:', isValid);
-      console.log('📋 Data type:', typeof data);
-      console.log('📊 Is array?', Array.isArray(data));
-      if (Array.isArray(data) && data.length > 0) {
-        console.log('📎 First item:', data[0]);
-        console.log('📌 First item body type:', typeof data[0]?.body);
+      try {
+        if (!validateResponse(data)) {
+          throw new AppError(ErrorType.VALIDATION, 'Response validation failed', {
+            details: { endpoint, data }
+          });
+        }
+        return data;
+      } catch (validationError) {
+        throw new AppError(
+          ErrorType.VALIDATION,
+          'Invalid response format',
+          {
+            originalError: validationError,
+            details: { endpoint, data }
+          }
+        );
       }
 
-      if (!isValid) {
-        console.error('❌ Validation failed for response:', data);
-        throw new ValidationError('Response validation failed');
-      }
-
-      return data;
     } catch (error) {
       attempt++;
       
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
           console.error('⏱️ Request timed out');
+          if (attempt >= maxAttempts) {
+            throw new AppError(ErrorType.NETWORK, 'Request timeout after all retries', {
+              details: { endpoint, attempts: maxAttempts }
+            });
+          }
         } else {
           console.error(`❌ Attempt ${attempt} failed:`, error);
-          if (error instanceof ValidationError) {
-            console.error('🚫 Validation details:', error.message);
+          if (attempt >= maxAttempts) {
+            throw AppError.fromError(error);
           }
         }
-      }
-
-      if (attempt >= maxAttempts) {
-        console.error('🔴 Max attempts reached');
-        return null;
       }
 
       // Exponential backoff delay
@@ -83,5 +87,6 @@ export async function makeApiRequest<T>(
     }
   }
 
-  return null;
+  // This should never be reached due to the throws above, but TypeScript wants it
+  throw new AppError(ErrorType.SYSTEM, 'Unexpected end of makeApiRequest');
 }

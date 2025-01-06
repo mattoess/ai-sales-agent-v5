@@ -1,0 +1,4 @@
+# In your project root
+echo "* text=auto
+*.tsx text eol=lf
+*.ts text eol=lf" > .gitattributes

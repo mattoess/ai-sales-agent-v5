@@ -6,6 +6,11 @@ export const MAKE_CONFIG = {
     createSession: import.meta.env.VITE_MAKE_CREATE_SESSION_WEBHOOK,
     loadSession: import.meta.env.VITE_MAKE_LOAD_SESSION_WEBHOOK,
     client: import.meta.env.VITE_MAKE_CLIENT_WEBHOOK,
+    content: {
+      process: import.meta.env.VITE_MAKE_CONTENT_PROCESS_WEBHOOK,
+      embed: import.meta.env.VITE_MAKE_CONTENT_EMBED_WEBHOOK,
+      analyze: import.meta.env.VITE_MAKE_CONTENT_ANALYZE_WEBHOOK,
+    }
   },
   retry: {
     maxAttempts: 3,
@@ -18,6 +23,11 @@ export const MAKE_CONFIG = {
     createSession: 30000,
     loadSession: 30000,
     client: 30000,
+    content: {
+      process: 60000,    // Content processing might take longer
+      embed: 45000,
+      analyze: 30000,
+    }
   },
   // Updated constants to match new webhook structure
   SOLUTION_WEBHOOK: import.meta.env.VITE_MAKE_SOLUTION_WEBHOOK,

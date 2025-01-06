@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { SignedIn, useUser } from '@clerk/clerk-react';
 import { DashboardLayout } from '../layouts/DashboardLayout';
 import { Dashboard } from '../pages/Dashboard';
+import { ContentManager } from '../components/admin/ContentManager';
 import { LandingPage } from '../components/landing/LandingPage';
 import { ROUTES } from '../config/constants';
 import { Loader2 } from 'lucide-react';
@@ -40,7 +41,6 @@ function OnboardingRedirect() {
 export function AppRoutes() {
   const { isLoaded, isSignedIn } = useUser();
 
-  // Show loading spinner while Clerk loads
   if (!isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -82,6 +82,7 @@ export function AppRoutes() {
         }
       >
         <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
+        <Route path="/admin/content" element={<ContentManager />} />
         
         {/* Redirect root to dashboard for signed-in users */}
         <Route
