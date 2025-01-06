@@ -3,7 +3,7 @@ import { MAKE_CONFIG } from './config';
 import { makeApiRequest } from './api';
 import { DiscoveryState, SolutionResponse, DiscoverySession } from '../../types/discovery';
 import { Session } from '../../types/session';
-import { ValidationError } from './errors';
+import { ValidationError } from '../errors';
 
 // Session webhook response types
 interface SessionCreateResponse {

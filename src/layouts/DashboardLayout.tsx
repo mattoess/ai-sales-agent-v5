@@ -1,5 +1,6 @@
 // src/layouts/DashboardLayout.tsx
 import { Outlet } from 'react-router-dom';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { TopNav } from './TopNav';
 import { Sidebar } from './Sidebar';
 import { useEffect, useState } from 'react';
@@ -88,20 +89,22 @@ export function DashboardLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <TopNav />
-      <div className="flex">
-        <Sidebar />
-        <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8">
-          <Outlet />
-        </main>
-      </div>
+    <TooltipProvider>
+      <div className="min-h-screen bg-gray-50">
+        <TopNav />
+        <div className="flex">
+          <Sidebar />
+          <main className="flex-1 py-6 px-4 sm:px-6 lg:px-8">
+            <Outlet />
+          </main>
+        </div>
 
-      <OnboardingModal 
-        isOpen={showOnboarding} 
-        onClose={handleCloseOnboarding}
-      />
-      <Toaster />
-    </div>
+        <OnboardingModal 
+          isOpen={showOnboarding} 
+          onClose={handleCloseOnboarding}
+        />
+        <Toaster />
+      </div>
+    </TooltipProvider>
   );
 }

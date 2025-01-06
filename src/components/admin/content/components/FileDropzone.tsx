@@ -1,43 +1,114 @@
-import React from 'react';
+import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload } from 'lucide-react';
-import { useFileUpload } from '../hooks/useFileUpload';
-import { useDocumentStore } from '../hooks/useDocumentStore';
+import { AppError, ErrorType } from '@/services/errors';
 
-export function FileDropzone() {
-  const { currentPath } = useDocumentStore();
-  const { uploadFiles } = useFileUpload();
+interface FileDropzoneProps {
+  onFileSelect: (files: File[]) => void;
+  onError?: (error: AppError) => void;
+  className?: string;
+}
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop: (acceptedFiles) => {
-      const fileList = Object.assign(acceptedFiles, {
-        item: (index: number) => acceptedFiles[index],
-        length: acceptedFiles.length
-      }) as unknown as FileList;
-      uploadFiles(fileList, currentPath);
-    },
-    accept: {
-      'application/pdf': ['.pdf'],
-      'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
-    },
-    multiple: true
+const ACCEPTED_TYPES = {
+  'application/pdf': ['.pdf'],
+  'application/msword': ['.doc'],
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
+};
+
+const MAX_SIZE = 50 * 1024 * 1024; // 50MB
+
+export function FileDropzone({ 
+  onFileSelect,
+  onError,
+  className = ''
+}: FileDropzoneProps) {
+  const handleDrop = useCallback((acceptedFiles: File[]) => {
+    try {
+      // Additional validation if needed
+      if (acceptedFiles.some(file => file.size > MAX_SIZE)) {
+        throw new AppError(
+          ErrorType.VALIDATION,
+          'File size exceeds limit',
+          {
+            details: {
+              maxSize: '50MB',
+              files: acceptedFiles.map(f => ({
+                name: f.name,
+                size: f.size
+              }))
+            }
+          }
+        );
+      }
+
+      onFileSelect(acceptedFiles);
+    } catch (error) {
+      if (onError) {
+        onError(error instanceof AppError ? error : new AppError(
+          ErrorType.VALIDATION,
+          'File upload error',
+          { originalError: error }
+        ));
+      }
+    }
+  }, [onFileSelect, onError]);
+
+  const { 
+    getRootProps, 
+    getInputProps, 
+    isDragActive,
+    isDragReject 
+  } = useDropzone({
+    onDrop: handleDrop,
+    accept: ACCEPTED_TYPES,
+    multiple: true,
+    maxSize: MAX_SIZE,
+    onDropRejected: (fileRejections) => {
+      if (onError) {
+        onError(new AppError(
+          ErrorType.VALIDATION,
+          'Invalid file type or size',
+          {
+            details: {
+              files: fileRejections.map(rejection => ({
+                name: rejection.file.name,
+                errors: rejection.errors.map(err => err.message)
+              }))
+            }
+          }
+        ));
+      }
+    }
   });
 
   return (
     <div
       {...getRootProps()}
-      className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-        isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300'
-      }`}
+      className={`
+        border-2 border-dashed rounded-lg p-8 text-center 
+        transition-colors cursor-pointer
+        ${isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300'}
+        ${isDragReject ? 'border-red-500 bg-red-50' : ''}
+        ${className}
+      `}
     >
       <input {...getInputProps()} />
-      <Upload className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+      <Upload className={`
+        w-12 h-12 mx-auto mb-4
+        ${isDragReject ? 'text-red-400' : 'text-gray-400'}
+      `} />
+      
       <p className="text-sm text-gray-600">
-        {isDragActive ? 'Drop the files here...' : 'Drag and drop files here, or click to select files'}
+        {isDragActive 
+          ? isDragReject 
+            ? 'Some files are not supported...'
+            : 'Drop the files here...'
+          : 'Drag and drop files here, or click to select files'
+        }
       </p>
+      
       <p className="text-xs text-gray-500 mt-2">
-        Supported files: PDF, DOC, DOCX
+        Supported files: PDF, DOC, DOCX (max 50MB)
       </p>
     </div>
   );

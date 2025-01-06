@@ -2,13 +2,14 @@ import { useCallback } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { useDocumentStore } from '../components/admin/content/hooks/useDocumentStore';
 import { Document } from '../components/admin/content/types';
-
-const WEBHOOK_URL = 'https://hook.us2.make.com/p7x46nz2ivxp7f43folpq6tpecod7b8v';
+import { makeApiRequest, MAKE_CONFIG, ContentProcessingResponse, validateContentResponse } from '../services/make';
+import { AppError, ErrorType } from '../services/errors';
 
 class EmbeddingQueue {
   private static instance: EmbeddingQueue;
   private queue: Document[] = [];
   private processing = false;
+  private errors: Map<string, AppError> = new Map();
 
   private constructor() {}
 
@@ -19,7 +20,15 @@ class EmbeddingQueue {
     return EmbeddingQueue.instance;
   }
 
-  async add(document: Document, user: any, updateStatus: (id: string, status: Document['status']) => void) {
+  getError(documentId: string): AppError | undefined {
+    return this.errors.get(documentId);
+  }
+
+  async add(
+    document: Document, 
+    user: any, 
+    updateStatus: (id: string, status: Document['status'], error?: AppError) => void
+  ) {
     this.queue.push(document);
     updateStatus(document.id, 'waiting');
     
@@ -28,7 +37,10 @@ class EmbeddingQueue {
     }
   }
 
-  private async processQueue(user: any, updateStatus: (id: string, status: Document['status']) => void) {
+  private async processQueue(
+    user: any, 
+    updateStatus: (id: string, status: Document['status'], error?: AppError) => void
+  ) {
     if (this.queue.length === 0) {
       this.processing = false;
       return;
@@ -39,80 +51,74 @@ class EmbeddingQueue {
 
     try {
       updateStatus(document.id, 'processing');
+      this.errors.delete(document.id); // Clear any previous errors
 
-      // Create form data with complete metadata
-      const formData = new FormData();
+      const namespace = `${user.publicMetadata.clientId}-${document.contentType?.primary || 'general'}`;
 
-      // Add the file
-      if (document.file) {
-        formData.append('file', document.file);
-      }
-
-      // Add comprehensive metadata
-      const metadata = {
-        // Document metadata
-        documentId: document.id,
-        fileName: document.name,
-        fileType: document.file?.type,
-        fileSize: document.size,
-        filePath: document.path,
-        tags: document.tags,
-        uploadDate: new Date().toISOString(),
-        lastModified: document.lastModified?.toISOString(),
-
-        // User context
-        userId: user.id,
-        userEmail: user.email,
-        userName: user.fullName,
-        companyId: user.companyId,
-        
-        // Processing context
-        processingPipeline: 'v2',
-        environment: process.env.NODE_ENV,
-        clientVersion: '1.0.0',
-        priority: 'normal',
-        
-        // Embedding settings
-        embeddingModel: 'text-embedding-3-large',
-        maxTokens: 8000,
-        chunkSize: 1000,
-        overlapSize: 200,
-        quality: 'high',
-
-        // Status tracking
-        status: 'processing',
-        processingAttempts: 1,
-        processingStartTime: new Date().toISOString()
+      const payload = {
+        document: {
+          id: document.id,
+          clientId: user.publicMetadata.clientId,
+          name: document.name,
+          type: document.type,
+          contentType: document.contentType,
+          metadata: {
+            ...document.metadata,
+            vectorNamespace: namespace
+          },
+        },
+        file: document.file,
+        processing: {
+          priority: document.processingMetadata?.priority || 'normal',
+          namespace,
+          extractionFlags: {
+            pricing: document.processingMetadata?.extractionFlags?.pricing || false,
+            metrics: document.processingMetadata?.extractionFlags?.metrics || true,
+            methodology: document.processingMetadata?.extractionFlags?.methodology || false,
+          },
+        },
+        user: {
+          id: user.id,
+          email: user.primaryEmailAddress?.emailAddress,
+          clientId: user.publicMetadata.clientId,
+        }
       };
 
-      formData.append('metadata', JSON.stringify(metadata));
+      const response = await makeApiRequest<ContentProcessingResponse>(
+        MAKE_CONFIG.urls.content.process,
+        payload,
+        validateContentResponse,
+        MAKE_CONFIG.timeouts.content.process
+      );
 
-      // Add processing settings
-      const settings = {
-        extractText: true,
-        generateEmbeddings: true,
-        extractMetadata: true,
-        translateContent: false,
-        languages: ['en'],
-        quality: 'high'
-      };
-
-      formData.append('settings', JSON.stringify(settings));
-
-      // Send to webhook
-      const response = await fetch(WEBHOOK_URL, {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to process document: ${response.statusText}`);
+      if (!response.success) {
+        throw new AppError(
+          ErrorType.CONTENT,
+          'Content processing failed',
+          {
+            details: {
+              documentId: document.id,
+              status: response.status,
+              metadata: response.metadata
+            }
+          }
+        );
       }
 
       updateStatus(document.id, 'embedded');
+
     } catch (error) {
-      console.error('Error processing document:', error);
-      updateStatus(document.id, 'failed');
+      const appError = error instanceof AppError 
+        ? error 
+        : new AppError(
+            ErrorType.CONTENT,
+            'Failed to process document',
+            { originalError: error }
+          );
+
+      this.errors.set(document.id, appError);
+      console.error('Error processing document:', appError);
+      updateStatus(document.id, 'failed', appError);
     }
 
     this.queue.shift();
@@ -130,22 +136,51 @@ export function useEmbeddingQueue() {
   const queue = EmbeddingQueue.getInstance();
 
   const embedDocument = useCallback(async (document: Document) => {
-    if (!user || !document.file) return;
+    if (!user || !document.file) {
+      throw new AppError(
+        ErrorType.VALIDATION,
+        'Missing required user or file data',
+        {
+          details: {
+            hasUser: !!user,
+            hasFile: !!document.file,
+            documentId: document.id
+          }
+        }
+      );
+    }
+
+    const baseProcessingMetadata = {
+      priority: document.processingMetadata?.priority || 'normal',
+      vectorNamespace: document.metadata.vectorNamespace,
+      extractionFlags: {
+        pricing: document.processingMetadata?.extractionFlags?.pricing || false,
+        metrics: document.processingMetadata?.extractionFlags?.metrics || true,
+        methodology: document.processingMetadata?.extractionFlags?.methodology || false,
+      },
+      lastProcessed: new Date()
+    } as const;
 
     await queue.add(
       document,
-      {
-        id: user.id,
-        email: user.primaryEmailAddress?.emailAddress,
-        fullName: user.fullName,
-        companyId: user.publicMetadata.companyId,
-      },
-      (id, status) => updateDocument(id, { status })
+      user,
+      (id, status, error) => updateDocument(id, { 
+        status,
+        processingMetadata: {
+          ...baseProcessingMetadata,
+          error: error ? {
+            type: error.type,
+            message: error.message,
+            details: error.context.details
+          } : undefined
+        }
+      })
     );
   }, [user, updateDocument]);
 
   return { 
     embedDocument, 
-    queueLength: queue.getQueueLength() 
+    queueLength: queue.getQueueLength(),
+    getError: (documentId: string) => queue.getError(documentId)
   };
 }
