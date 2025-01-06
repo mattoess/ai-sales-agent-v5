@@ -1,18 +1,11 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+// import React from 'react';
 import { ArrowRight } from 'lucide-react';
-import { SignUpButton } from '@clerk/clerk-react';
 
-export function CtaSection() {
+function CtaSection() {
   return (
-    <section className="py-20 bg-techcxo-navy">
+    <section className="py-20 bg-blue-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center"
-        >
+        <div className="text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
             Ready to Transform Your Sales Discovery?
           </h2>
@@ -20,18 +13,21 @@ export function CtaSection() {
             Join innovative teams already using our AI-powered platform to close deals faster
           </p>
           
-          <SignUpButton mode="modal">
-            <button className="inline-flex items-center px-8 py-3 bg-techcxo-green text-white rounded-lg hover:bg-techcxo-green/90">
-              Get Started Now
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </button>
-          </SignUpButton>
+          <button 
+            onClick={() => console.log('Sign up clicked')}
+            className="inline-flex items-center px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700"
+          >
+            Get Started Now
+            <ArrowRight className="ml-2 w-5 h-5" />
+          </button>
           
           <p className="mt-4 text-gray-400">
             No credit card required · Free 14-day trial
           </p>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
 }
+
+export default CtaSection;

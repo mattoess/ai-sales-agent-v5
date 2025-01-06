@@ -1,49 +1,72 @@
-import React from 'react';
-import { UseCaseCard } from './UseCaseCard';
+import { Check, Users, Building2, Briefcase } from 'lucide-react';
 import { SectionTitle } from '../SectionTitle';
 
 const useCases = [
   {
-    title: "Enterprise Tech Transformation",
-    industry: "Enterprise Technology",
-    challenge: "Global tech firm struggling with misaligned executive team and slow decision-making process.",
-    solution: "Implemented AI-driven discovery process to identify core issues and align leadership.",
-    results: "40% faster strategic implementation and eliminated executive turnover."
+    icon: <Building2 className="w-12 h-12 text-green-600" />,
+    title: "Enterprise Sales",
+    description: "Close complex enterprise deals faster with AI that helps navigate multiple stakeholders, technical requirements, and procurement processes.",
+    benefits: [
+      "Multi-stakeholder engagement strategies",
+      "Technical requirement mapping",
+      "Enterprise-ready proposal generation"
+    ]
   },
   {
-    title: "Healthcare Innovation",
-    industry: "Healthcare",
-    challenge: "Regional healthcare provider facing barriers in merger integration and team collaboration.",
-    solution: "Used AI insights to transform executive conflicts into productive dialogue.",
-    results: "$3M in synergy savings realized 6 months ahead of schedule."
+    icon: <Users className="w-12 h-12 text-green-600" />,
+    title: "Solution Consulting",
+    description: "Transform technical capabilities into business value with AI that helps articulate ROI and alignment with customer objectives.",
+    benefits: [
+      "Value proposition customization",
+      "ROI calculation assistance",
+      "Technical-to-business translation"
+    ]
   },
   {
-    title: "Financial Services Growth",
-    industry: "Financial Services",
-    challenge: "Investment firm experiencing communication gaps between departments affecting client service.",
-    solution: "Applied AI-powered discovery to identify and address organizational silos.",
-    results: "25% improvement in client satisfaction and 30% faster decision-making."
-  },
-  {
-    title: "Professional Services Excellence",
-    industry: "Professional Services",
-    challenge: "Consulting firm struggling with inconsistent service delivery and team alignment.",
-    solution: "Leveraged AI insights to standardize discovery process and align team objectives.",
-    results: "50% reduction in delivery variations and 35% increase in client retention."
+    icon: <Briefcase className="w-12 h-12 text-green-600" />,
+    title: "Professional Services",
+    description: "Win more consulting engagements by showcasing expertise and developing tailored service proposals in real-time.",
+    benefits: [
+      "Expertise demonstration",
+      "Scope customization",
+      "Deliverable optimization"
+    ]
   }
 ];
 
-export function UseCasesSection() {
+export default function UseCasesSection() {
   return (
-    <section id="use-cases" className="py-20 bg-gray-50">
+    <section className="py-20 bg-gray-50" id="use-cases">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SectionTitle
-          title="Success Stories Across Industries"
-          subtitle="See how organizations are transforming their sales discovery process"
+          title="Powerful Across All B2B Sales"
+          subtitle="From enterprise software to professional services, enhance every sales conversation"
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {useCases.map((useCase, index) => (
-            <UseCaseCard key={useCase.title} {...useCase} index={index} />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {useCases.map((useCase) => (
+            <div
+              key={useCase.title}
+              className="bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300"
+            >
+              <div className="mb-6">
+                {useCase.icon}
+              </div>
+              <h3 className="text-xl font-semibold text-blue-900 mb-4">
+                {useCase.title}
+              </h3>
+              <p className="text-gray-600 mb-6">
+                {useCase.description}
+              </p>
+              <ul className="space-y-3">
+                {useCase.benefits.map((benefit) => (
+                  <li key={benefit} className="flex items-start">
+                    <Check className="w-5 h-5 text-green-600 mr-2 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-600">{benefit}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
         </div>
       </div>
