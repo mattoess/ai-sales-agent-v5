@@ -1,115 +1,104 @@
-import { useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
-import { Upload } from 'lucide-react';
+// src/components/admin/content/shared/FileDropzone.tsx
+import { useState, useCallback } from 'react';
+import { UploadCloud } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { AppError, ErrorType } from '@/services/errors';
-import type { SetStateAction, Dispatch } from 'react';
-
-const ACCEPTED_TYPES = {
-  'application/pdf': ['.pdf'],
-  'application/msword': ['.doc'],
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
-};
-
-const MAX_SIZE = 50 * 1024 * 1024; // 50MB
 
 interface FileDropzoneProps {
   onFileSelect: (files: File[]) => void;
-  onError?: Dispatch<SetStateAction<AppError | null>>;
-  className?: string;
 }
 
-export function FileDropzone({ 
-  onFileSelect,
-  onError,
-  className = ''
-}: FileDropzoneProps) {
-  const handleDrop = useCallback((acceptedFiles: File[]) => {
-    try {
-      if (acceptedFiles.some(file => file.size > MAX_SIZE)) {
-        throw new AppError(
-          ErrorType.VALIDATION,
-          'File size exceeds limit',
-          {
-            details: {
-              maxSize: '50MB',
-              files: acceptedFiles.map(f => ({
-                name: f.name,
-                size: f.size
-              }))
-            }
-          }
-        );
-      }
+export const FileDropzone: React.FC<FileDropzoneProps> = ({ onFileSelect }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-      onFileSelect(acceptedFiles);
-    } catch (error) {
-      if (onError) {
-        onError(error instanceof AppError ? error : new AppError(
-          ErrorType.VALIDATION,
-          'File upload error',
-          { originalError: error }
-        ));
+  const handleError = useCallback((message: string) => {
+    setError(message);
+    setTimeout(() => setError(null), 3000);
+  }, []);
+
+  const validateFiles = useCallback((files: File[]): boolean => {
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    const maxSize = 10 * 1024 * 1024; // 10MB
+
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        handleError('Invalid file type. Only PDF and Word documents are allowed.');
+        return false;
+      }
+      if (file.size > maxSize) {
+        handleError('File too large. Maximum size is 10MB.');
+        return false;
       }
     }
-  }, [onFileSelect, onError]);
+    return true;
+  }, [handleError]);
 
-  const { 
-    getRootProps, 
-    getInputProps, 
-    isDragActive,
-    isDragReject 
-  } = useDropzone({
-    onDrop: handleDrop,
-    accept: ACCEPTED_TYPES,
-    multiple: true,
-    maxSize: MAX_SIZE,
-    onDropRejected: (fileRejections) => {
-      if (onError) {
-        onError(new AppError(
-          ErrorType.VALIDATION,
-          'Invalid file type or size',
-          {
-            details: {
-              files: fileRejections.map(rejection => ({
-                name: rejection.file.name,
-                errors: rejection.errors.map(err => err.message)
-              }))
-            }
-          }
-        ));
-      }
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    if (validateFiles(droppedFiles)) {
+      onFileSelect(droppedFiles);
     }
-  });
+  }, [onFileSelect, validateFiles]);
+
+  const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = e.target.files ? Array.from(e.target.files) : [];
+    if (validateFiles(selectedFiles)) {
+      onFileSelect(selectedFiles);
+    }
+    // Reset input value to allow selecting the same file again
+    e.target.value = '';
+  }, [onFileSelect, validateFiles]);
 
   return (
     <div
-      {...getRootProps()}
-      className={`
-        border-2 border-dashed rounded-lg p-8 text-center 
-        transition-colors cursor-pointer
-        ${isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300'}
-        ${isDragReject ? 'border-red-500 bg-red-50' : ''}
-        ${className}
-      `}
+      className={cn(
+        "relative border-2 border-dashed rounded-lg p-8",
+        isDragging ? "border-blue-500 bg-blue-50" : "border-gray-300",
+        error ? "border-red-500 bg-red-50" : ""
+      )}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
     >
-      <input {...getInputProps()} />
-      <Upload className={`
-        w-12 h-12 mx-auto mb-4
-        ${isDragReject ? 'text-red-400' : 'text-gray-400'}
-      `} />
+      <input
+        type="file"
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+        onChange={handleFileInput}
+        multiple
+        accept=".pdf,.doc,.docx"
+      />
       
-      <p className="text-sm text-gray-600">
-        {isDragActive 
-          ? isDragReject 
-            ? 'Some files are not supported...'
-            : 'Drop the files here...'
-          : 'Drag and drop files here, or click to select files'
-        }
-      </p>
-      
-      <p className="text-xs text-gray-500 mt-2">
-        Supported files: PDF, DOC, DOCX (max 50MB)
-      </p>
+      <div className="flex flex-col items-center justify-center space-y-4">
+        <UploadCloud className="w-12 h-12 text-gray-400" />
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            {isDragging ? "Drop files here" : "Drag & drop files here"}
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            or click to browse
+          </p>
+        </div>
+        {error && (
+          <p className="text-sm text-red-600 mt-2">{error}</p>
+        )}
+      </div>
     </div>
   );
-}
+};

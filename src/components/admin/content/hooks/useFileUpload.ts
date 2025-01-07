@@ -1,3 +1,4 @@
+// src/components/admin/content/hooks/useFileUpload.ts
 import { useCallback, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { useDocumentStore } from './useDocumentStore';
@@ -18,6 +19,7 @@ interface UploadMetadata {
   outcomes: string[];
   audience: AudienceType[];
   vectorNamespace: string;
+  isCompanyWide: boolean;
 }
 
 const DEFAULT_METADATA: UploadMetadata = {
@@ -25,7 +27,8 @@ const DEFAULT_METADATA: UploadMetadata = {
   industries: [],
   outcomes: [],
   audience: [],
-  vectorNamespace: ''
+  vectorNamespace: '',
+  isCompanyWide: false
 };
 
 export function useFileUpload() {
@@ -71,20 +74,19 @@ export function useFileUpload() {
           lastModified: new Date(file.lastModified),
           file,
           tags: [],
-          contentType: {
-            primary: 'solution' as ContentType,
-            subtype: undefined
+          contentType: 'solution' as ContentType,
+          metadata: {
+            ...metadataWithNamespace,
+            isCompanyWide: metadata.isCompanyWide
           },
-          metadata: metadataWithNamespace,
           status: 'not_embedded' as DocumentStatus,
           processingMetadata: {
-            priority: 'normal',
-            vectorNamespace: metadataWithNamespace.vectorNamespace,
             extractionFlags: {
               pricing: false,
               metrics: true,
               methodology: true
-            }
+            },
+            lastProcessed: new Date()
           }
         };
 

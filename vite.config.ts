@@ -1,3 +1,4 @@
+// vite.config.ts
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -8,11 +9,17 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src')
     },
-    extensions: ['.js', '.ts', '.jsx', '.tsx', '.json'] // Add this line
+    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json']
   },
   server: {
     watch: {
       usePolling: true
+    }
+  },
+  build: {
+    sourcemap: true,
+    commonjsOptions: {
+      transformMixedEsModules: true
     }
   }
 });

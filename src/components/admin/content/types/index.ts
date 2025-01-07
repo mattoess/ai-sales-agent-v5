@@ -1,40 +1,43 @@
+// src/components/admin/content/types/index.ts
 export type DocumentStatus = 'not_embedded' | 'processing' | 'embedded' | 'failed' | 'waiting';
-export type ContentType = 'solution' | 'case_study' | 'technical' | 'pricing' | 'methodology';
+
+export type ContentType = 
+  | 'solution' 
+  | 'case_study' 
+  | 'technical' 
+  | 'methodology_and_frameworks'
+  | 'pricing';
+
 export type AudienceType = 'technical' | 'business' | 'executive';
 
-interface ProcessingError {
+export interface ProcessingError {
   type: string;
   message: string;
   details?: Record<string, unknown>;
 }
 
+// In src/components/admin/content/types/index.ts
 export interface Document {
   id: string;
   name: string;
   type: 'file' | 'folder';
   path: string;
-  tags: string[];
+  tags: string[];  // Add this line if it wasn't already there
   size?: number;
   lastModified?: Date;
   file?: File;
 
   clientId: string;
   userId: string;
-  contentType: {
-    primary: ContentType;
-    subtype?: string;
-  };
+  contentType: ContentType;
   metadata: {
     solutions: string[];
-    industries: string[];
-    outcomes: string[];
     audience: AudienceType[];
+    isCompanyWide: boolean;
     vectorNamespace: string;
   };
   status: DocumentStatus;
   processingMetadata?: {
-    priority: 'high' | 'normal' | 'low';
-    vectorNamespace: string;
     extractionFlags: {
       pricing: boolean;
       metrics: boolean;
@@ -44,18 +47,16 @@ export interface Document {
     error?: ProcessingError;
   };
 }
+export interface BulkEditableDocument extends Document {
+  isSelected?: boolean;
+  isPendingEdit?: boolean;
+}
 
+// In src/components/admin/content/types/index.ts
 export interface Video {
   id: string;
-  url: string;
   title: string;
-  description?: string;
-  thumbnail?: string;
-  status?: 'pending' | 'processing' | 'embedded' | 'failed';
-  metadata?: {
-    duration?: string;
-    views?: number;
-    channel?: string;
-    publishDate?: string;
-  };
+  description: string;
+  thumbnail: string;
+  // Add any other properties your video object needs
 }

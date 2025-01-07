@@ -1,38 +1,40 @@
-import { create } from 'zustand';
-import { Document, FileUploadProgress } from '../types';
+// src/components/admin/content/hooks/useDocumentStore.ts
+import create from 'zustand';
+import type { Document } from '../types';
 
-interface DocumentState {
+interface DocumentStore {
   documents: Document[];
-  uploadProgress: Record<string, FileUploadProgress>;
   currentPath: string;
-  setDocuments: (documents: Document[]) => void;
-  addDocument: (document: Document) => void;
+  addDocument: (doc: Document) => void;
   updateDocument: (id: string, updates: Partial<Document>) => void;
-  deleteDocument: (id: string) => void;
-  setUploadProgress: (fileId: string, progress: FileUploadProgress) => void;
+  updateDocuments: (docs: Document[]) => void;  // New function
   setCurrentPath: (path: string) => void;
 }
 
-export const useDocumentStore = create<DocumentState>((set) => ({
+export const useDocumentStore = create<DocumentStore>((set) => ({
   documents: [],
-  uploadProgress: {},
   currentPath: '/',
-  setDocuments: (documents) => set({ documents }),
-  addDocument: (document) =>
-    set((state) => ({ documents: [...state.documents, document] })),
+  
+  addDocument: (doc) => 
+    set((state) => ({
+      documents: [...state.documents, doc]
+    })),
+  
   updateDocument: (id, updates) =>
     set((state) => ({
-      documents: state.documents.map((doc) =>
+      documents: state.documents.map(doc =>
         doc.id === id ? { ...doc, ...updates } : doc
-      ),
+      )
     })),
-  deleteDocument: (id) =>
-    set((state) => ({
-      documents: state.documents.filter((doc) => doc.id !== id),
+
+  // New function to update multiple documents at once
+  updateDocuments: (docs) =>
+    set(() => ({
+      documents: docs
     })),
-  setUploadProgress: (fileId, progress) =>
-    set((state) => ({
-      uploadProgress: { ...state.uploadProgress, [fileId]: progress },
-    })),
-  setCurrentPath: (path) => set({ currentPath: path }),
+  
+  setCurrentPath: (path) =>
+    set(() => ({
+      currentPath: path
+    }))
 }));

@@ -1,46 +1,59 @@
-import { useState } from 'react';
+// src/components/admin/content/components/SmartUploadFlow.tsx
+import { useState, useCallback } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { useEmbeddingQueue } from '@/hooks/useEmbeddingQueue';
-import { Document, ContentType } from '../types';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { FileDropzone } from '../shared/FileDropzone';
 import { MetadataSelectors } from './MetadataSelectors';
+import type { Document, AudienceType, ContentType } from '../types';
 import { AppError, ErrorType } from '@/services/errors';
 
-const CONTENT_TYPE_INFO: Record<ContentType, {
+interface MetadataState {
+  solutions: string[];
+  audience: AudienceType[];
+  isCompanyWide: boolean;
+  vectorNamespace: string;
+}
+
+const CONTENT_TYPE_GUIDES: Record<ContentType, {
   title: string;
   description: string;
   examples: string[];
+  recommendations: string;
 }> = {
-  'solution': {
-    title: 'Solution Overview',
-    description: 'High-level solution descriptions and capabilities',
-    examples: ['Solution Briefs', 'Product Overviews', 'Capability Documents']
+  solution: {
+    title: 'Solution Documents',
+    description: 'Product descriptions and capabilities',
+    examples: ['Product Sheets', 'Solution Briefs'],
+    recommendations: 'Include clear value propositions'
   },
-  'case_study': {
+  case_study: {
     title: 'Case Studies',
-    description: 'Customer success stories and implementation examples',
-    examples: ['Success Stories', 'Implementation Examples', 'ROI Studies']
+    description: 'Customer success stories',
+    examples: ['Success Stories', 'ROI Analysis'],
+    recommendations: 'Highlight metrics and outcomes'
   },
-  'technical': {
+  technical: {
     title: 'Technical Documentation',
-    description: 'Technical specifications and implementation details',
-    examples: ['API Docs', 'Technical Specs', 'Implementation Guides']
+    description: 'Technical specifications',
+    examples: ['API Docs', 'Integration Guides'],
+    recommendations: 'Include clear requirements'
   },
-  'pricing': {
+  pricing: {
     title: 'Pricing Information',
-    description: 'Pricing guides and commercial information',
-    examples: ['Price Lists', 'Rate Cards', 'Pricing Models']
+    description: 'Pricing models',
+    examples: ['Price Lists', 'Rate Cards'],
+    recommendations: 'Structure pricing clearly'
   },
-  'methodology': {
-    title: 'Methodology',
-    description: 'Process documentation and methodological approaches',
-    examples: ['Process Docs', 'Best Practices', 'Framework Guides']
+  methodology_and_frameworks: {
+    title: 'Methodology & Frameworks',
+    description: 'Process documentation',
+    examples: ['Process Guides', 'Frameworks'],
+    recommendations: 'Detail step-by-step approaches'
   }
-} as const;
-
-type MetadataWithoutNamespace = Omit<Document['metadata'], 'vectorNamespace'>;
+};
 
 export function SmartUploadFlow() {
   const { user } = useUser();
@@ -48,24 +61,23 @@ export function SmartUploadFlow() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [showMetadata, setShowMetadata] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [contentType, setContentType] = useState<ContentType>();
+  const [contentType, setContentType] = useState<ContentType>('solution');
   const [error, setError] = useState<AppError | null>(null);
 
-  const [metadata, setMetadata] = useState<Document['metadata']>({
+  const [metadata, setMetadata] = useState<MetadataState>({
     solutions: [],
-    industries: [],
-    outcomes: [],
     audience: [],
+    isCompanyWide: false,
     vectorNamespace: ''
   });
 
-  const handleFileSelect = (files: File[]) => {
+  const handleFileSelect = useCallback((files: File[]) => {
     setSelectedFiles(files);
     setShowMetadata(true);
     setError(null);
-  };
+  }, []);
 
-  const createDocument = (file: File): Document => {
+  const createDocument = useCallback((file: File): Document => {
     if (!user || !contentType) {
       throw new AppError(
         ErrorType.VALIDATION,
@@ -74,39 +86,35 @@ export function SmartUploadFlow() {
       );
     }
 
-    const namespace = `${user.publicMetadata.clientId}-${contentType}`;
+    const clientId = user.publicMetadata.clientId as string;
     
     return {
       id: crypto.randomUUID(),
-      clientId: user.publicMetadata.clientId as string,
-      userId: user.id,
       name: file.name,
       type: 'file',
       path: '/',
+      tags: [],
       size: file.size,
       lastModified: new Date(file.lastModified),
       file,
-      tags: [],
-      contentType: { 
-        primary: contentType 
-      },
+      clientId,
+      userId: user.id,
+      contentType,
       metadata: {
         ...metadata,
-        vectorNamespace: namespace
+        vectorNamespace: metadata.vectorNamespace || clientId
       },
       status: 'not_embedded',
       processingMetadata: {
-        priority: 'normal',
-        vectorNamespace: namespace,
         extractionFlags: {
           pricing: contentType === 'pricing',
           metrics: contentType === 'case_study',
-          methodology: contentType === 'methodology',
+          methodology: contentType === 'methodology_and_frameworks'
         },
         lastProcessed: new Date()
       }
     };
-  };
+  }, [user, contentType, metadata]);
 
   const handleProcess = async () => {
     if (!user || !contentType || selectedFiles.length === 0) return;
@@ -115,16 +123,17 @@ export function SmartUploadFlow() {
     setError(null);
 
     try {
-      const documents = selectedFiles.map(createDocument);
-      await Promise.all(documents.map(embedDocument));
+      await Promise.all(selectedFiles.map(file => {
+        const document = createDocument(file);
+        return embedDocument(document);
+      }));
 
       setSelectedFiles([]);
       setShowMetadata(false);
       setMetadata({
         solutions: [],
-        industries: [],
-        outcomes: [],
         audience: [],
+        isCompanyWide: false,
         vectorNamespace: ''
       });
     } catch (err) {
@@ -141,80 +150,51 @@ export function SmartUploadFlow() {
     }
   };
 
-  const handleMetadataChange = (newMetadata: MetadataWithoutNamespace) => {
-    setMetadata({
-      ...newMetadata,
-      vectorNamespace: metadata.vectorNamespace
-    });
-  };
-
   return (
     <div className="space-y-6">
-      <FileDropzone 
-        onFileSelect={handleFileSelect}
-        onError={setError}
-        className="max-w-2xl mx-auto"
-      />
+      <FileDropzone onFileSelect={handleFileSelect} />
 
       {showMetadata && selectedFiles.length > 0 && (
-        <div className="space-y-6">
-          <Select
-            value={contentType}
-            onValueChange={(value: ContentType) => setContentType(value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select content type..." />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(CONTENT_TYPE_INFO).map(([key, info]) => (
-                <SelectItem key={key} value={key as ContentType}>
-                  <div className="space-y-1">
-                    <div className="font-medium">{info.title}</div>
-                    <div className="text-xs text-gray-500">{info.description}</div>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <MetadataSelectors
-            value={metadata}
-            onChange={handleMetadataChange}
-          />
-
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">{error.message}</h3>
-                  {error.context.details && (
-                    <div className="mt-2 text-sm text-red-700">
-                      <pre className="whitespace-pre-wrap">
-                        {JSON.stringify(error.context.details, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-                </div>
-              </div>
+        <Card>
+          <CardHeader>
+            <h3 className="text-lg font-semibold">Configure Document Settings</h3>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <MetadataSelectors
+              value={{
+                solutions: metadata.solutions,
+                audience: metadata.audience,
+                isCompanyWide: metadata.isCompanyWide
+              }}
+              onChange={(newValue) => {
+                setMetadata(prev => ({
+                  ...prev,
+                  ...newValue,
+                  vectorNamespace: prev.vectorNamespace
+                }));
+              }}
+            />
+            
+            <div className="flex justify-end space-x-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSelectedFiles([]);
+                  setShowMetadata(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleProcess}
+                disabled={isProcessing}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {isProcessing ? 'Processing...' : 'Process Documents'}
+              </Button>
             </div>
-          )}
-
-          <div className="flex justify-end gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowMetadata(false)}
-              disabled={isProcessing}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleProcess}
-              disabled={!contentType || isProcessing}
-            >
-              {isProcessing ? 'Processing...' : `Process ${selectedFiles.length} file${selectedFiles.length !== 1 ? 's' : ''}`}
-            </Button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

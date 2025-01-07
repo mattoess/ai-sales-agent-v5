@@ -1,3 +1,4 @@
+// src/components/admin/content/components/FileUploader/FileListItem.tsx
 import { FileText, File, X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -6,12 +7,16 @@ import {
   TooltipContent,
   TooltipTrigger
 } from '@/components/ui/tooltip';
-import type { Document } from '../../types';
+import { Checkbox } from '@/components/ui/checkbox';
+import type { Document, BulkEditableDocument } from '../../types';
 
 interface FileListItemProps {
-  file: Document;
+  file: Document | BulkEditableDocument;
   onRemove?: () => void;
   disabled?: boolean;
+  onSelect?: (checked: boolean) => void;
+  isSelected?: boolean;
+  onClick?: () => void;
 }
 
 const FILE_ICONS: Record<string, JSX.Element> = {
@@ -24,7 +29,10 @@ const FILE_ICONS: Record<string, JSX.Element> = {
 export function FileListItem({ 
   file, 
   onRemove,
-  disabled = false 
+  disabled = false,
+  onSelect,
+  isSelected,
+  onClick 
 }: FileListItemProps) {
   const formatFileSize = (bytes: number = 0) => {
     if (bytes === 0) return '0 B';
@@ -66,14 +74,35 @@ export function FileListItem({
     }
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    // Prevent click event when clicking checkbox
+    if ((e.target as HTMLElement).closest('.checkbox-container')) {
+      return;
+    }
+    onClick?.();
+  };
+
   return (
-    <div className={`
-      relative group flex items-center justify-between p-3 
-      bg-white border rounded-lg shadow-sm
-      transition-all duration-200
-      ${disabled ? 'opacity-70' : 'hover:border-gray-300 hover:shadow'}
-    `}>
-      <div className="flex items-center space-x-3 min-w-0">
+    <div 
+      className={`
+        relative group flex items-center justify-between p-3 
+        bg-white border rounded-lg shadow-sm
+        transition-all duration-200
+        ${disabled ? 'opacity-70' : 'hover:border-gray-300 hover:shadow'}
+        ${onClick ? 'cursor-pointer' : ''}
+      `}
+      onClick={handleClick}
+    >
+      {onSelect && (
+        <div className="checkbox-container absolute left-2 top-1/2 transform -translate-y-1/2">
+          <Checkbox 
+            checked={isSelected}
+            onCheckedChange={(checked) => onSelect(checked as boolean)}
+          />
+        </div>
+      )}
+
+      <div className={`flex items-center space-x-3 min-w-0 ${onSelect ? 'ml-8' : ''}`}>
         {getFileIcon(file.name)}
         <div className="min-w-0">
           <div className="flex items-center gap-2">
@@ -102,7 +131,7 @@ export function FileListItem({
             ${disabled ? 'bg-gray-100' : 'hover:bg-gray-100'}
           `}
         >
-          {file.contentType?.primary || 'Unknown'}
+          {file.contentType}
         </Badge>
 
         {onRemove && (
@@ -116,7 +145,10 @@ export function FileListItem({
                   transition-opacity duration-200
                   ${disabled ? 'cursor-not-allowed' : 'hover:bg-red-50 hover:text-red-600'}
                 `}
-                onClick={onRemove}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove();
+                }}
                 disabled={disabled}
               >
                 <span className="sr-only">Remove file</span>

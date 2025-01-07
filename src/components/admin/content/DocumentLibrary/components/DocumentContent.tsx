@@ -1,5 +1,5 @@
 // src/components/admin/content/DocumentLibrary/components/DocumentContent.tsx
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { 
   FolderBreadcrumb,
@@ -9,6 +9,7 @@ import {
 } from '../../shared';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { InfoTooltip } from '../../shared';
 import { useCloudStorage } from '@/hooks/useCloudStorage';
 import { useDocumentStore } from '../../hooks/useDocumentStore';
@@ -39,8 +40,8 @@ const CONTENT_TYPE_GUIDES = {
     examples: ['Price Lists', 'Rate Cards', 'Licensing Models'],
     recommendations: 'Structure pricing clearly with options and tiers'
   },
-  methodology: {
-    title: 'Methodology Documents',
+  methodology_and_frameworks: {  // Updated name
+    title: 'Methodology and Solution Frameworks',
     description: 'Process frameworks and methodological approaches',
     examples: ['Process Guides', 'Best Practices', 'Frameworks'],
     recommendations: 'Detail step-by-step approaches and outcomes'
@@ -50,10 +51,11 @@ const CONTENT_TYPE_GUIDES = {
 export function DocumentContent() {
   const { user } = useUser();
   const { openGoogleDrivePicker, openDropboxChooser } = useCloudStorage();
-  const { addDocument } = useDocumentStore();
+  const { addDocument, documents } = useDocumentStore();
+  const [selectedTabType, setSelectedTabType] = useState<ContentType>('solution');
+  const [readyToProcess, setReadyToProcess] = useState(false);
 
   const getContentType = (fileType: string): ContentType => {
-    // Enhanced content type detection
     switch (true) {
       case /\.(pdf|doc|docx)$/.test(fileType.toLowerCase()):
         return 'solution';
@@ -62,7 +64,7 @@ export function DocumentContent() {
       case /\.(ppt|pptx)$/.test(fileType.toLowerCase()):
         return 'technical';
       default:
-        return 'solution';
+        return selectedTabType; // Use selected tab type as default
     }
   };
 
@@ -72,7 +74,6 @@ export function DocumentContent() {
     files.forEach(file => {
       const clientId = user.publicMetadata.clientId as string;
       const contentType = getContentType(file.type);
-     // const guide = CONTENT_TYPE_GUIDES[contentType];
       
       const newDocument: Document = {
         id: crypto.randomUUID(),
@@ -85,45 +86,58 @@ export function DocumentContent() {
         file,
         clientId,
         userId: user.id,
-        contentType: {
-          primary: contentType,
-          subtype: file.type
-        },
+        contentType: contentType,
         metadata: {
           solutions: [],
-          industries: [],
-          outcomes: [],
           audience: [],
-          vectorNamespace: `${clientId}-${contentType}`
+          isCompanyWide: false,
+          vectorNamespace: clientId // Single namespace per client
         },
         status: 'not_embedded',
         processingMetadata: {
-          priority: 'normal',
-          vectorNamespace: `${clientId}-${contentType}`,
           extractionFlags: {
             pricing: contentType === 'pricing',
             metrics: contentType === 'case_study',
-            methodology: contentType === 'methodology'
+            methodology: contentType === 'methodology_and_frameworks'
           },
           lastProcessed: new Date()
         }
       };
       
       addDocument(newDocument);
+      setReadyToProcess(true);
     });
-  }, [addDocument, user]);
+  }, [addDocument, user, selectedTabType]);
+
+  const handleProcessDocuments = useCallback(() => {
+    // Will implement in next step
+  }, []);
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">Content Upload Guidelines</h3>
-            <InfoTooltip content="Properly categorized and tagged content improves AI discovery accuracy" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold">Content Upload Guidelines</h3>
+              <InfoTooltip content="Properly categorized and tagged content improves AI discovery accuracy" />
+            </div>
+            {readyToProcess && (
+              <Button 
+                onClick={handleProcessDocuments}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                Process All Documents
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="solution" className="w-full">
+          <Tabs 
+            defaultValue="solution" 
+            className="w-full"
+            onValueChange={(value) => setSelectedTabType(value as ContentType)}
+          >
             <TabsList className="mb-4">
               {Object.entries(CONTENT_TYPE_GUIDES).map(([key, guide]) => (
                 <TabsTrigger key={key} value={key}>
