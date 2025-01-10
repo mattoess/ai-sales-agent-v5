@@ -9,6 +9,7 @@ import { ConfigurationError } from './components/ConfigurationError';
 import { clerkConfig } from './config/clerk';
 import { validateEnv } from './config/env';
 import { DiscoveryProvider } from './providers/DiscoveryProvider';
+import { Toaster } from "@/components/ui/toaster";
 
 export function App() {
   // Validate environment variables - this is looking at my .env file
@@ -27,6 +28,7 @@ export function App() {
           <BrowserRouter>
             <DiscoveryProvider>
               <AppRoutes />
+              <Toaster /> 
             </DiscoveryProvider>
           </BrowserRouter>
         </ClerkProvider>
