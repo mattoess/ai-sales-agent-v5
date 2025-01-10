@@ -14,6 +14,12 @@ export interface DiscoveryResponse {
   };
 }
 
+export interface Solution {
+  id: string;
+  name: string;
+  // Add other required properties
+}
+
 // Comprehensive information about the prospect
 export interface ProspectInfo {
   firstName: string;

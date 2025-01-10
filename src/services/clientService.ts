@@ -14,7 +14,7 @@ export async function saveCompanySetup(data: OnboardingData): Promise<ClientResp
       companyName: data.companyName,
       website: data.website || '',
       industry: data.industry || '',
-      logo: data.logo, // Already in LogoInfo format
+      logo: data.logo,
       timestamp: new Date().toISOString()
     };
 
@@ -26,30 +26,14 @@ export async function saveCompanySetup(data: OnboardingData): Promise<ClientResp
       body: JSON.stringify(payload)
     });
 
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
     const result = await response.json();
 
-    if (response.status === 201 || response.status === 200) {
-      return {
-        status: 'success',
-        data: {
-          userID: result.data.userID,
-          clientId: result.data.clientId,
-          company: {
-            name: result.data.company.name,
-            status: result.data.company.status,
-            logo: result.data.company.logo,
-            industry: result.data.company.industry,
-            website: result.data.company.website
-          },
-          user: {
-            email: result.data.user.email,
-            role: result.data.user.role,
-            status: result.data.user.status,
-            firstName: result.data.user.firstName,
-            lastName: result.data.user.lastName
-          }
-        }
-      };
+    if (result.status === 'success' && result.data) {
+      return result as ClientResponse; // Response should already match our type
     }
 
     return {
@@ -68,53 +52,43 @@ export async function saveCompanySetup(data: OnboardingData): Promise<ClientResp
 
 export async function getClientByClerkId(clerkUserId: string): Promise<ClientResponse> {
   try {
+    console.log('🔍 Fetching client data for clerkUserId:', clerkUserId);
+    console.log('🌐 Using webhook URL:', MAKE_CONFIG.urls.client);
+    
+    const payload = { 
+      action: 'getClient',
+      clerkUserId 
+    };
+    
+    console.log('📦 Request payload:', payload);
+
     const response = await fetch(MAKE_CONFIG.urls.client, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ 
-        action: 'getClient',
-        clerkUserId 
-      })
+      body: JSON.stringify(payload)
     });
 
-    const result = await response.json();
-
+    console.log('📡 Response status:', response.status);
+    
     if (!response.ok) {
-      return {
-        status: 'error',
-        message: `Failed to fetch client data: ${result.message || response.statusText}`
-      };
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
+    const result = await response.json();
+    console.log('📄 Response data:', result);
+
     if (result.status === 'success' && result.data) {
-      return {
-        status: 'success',
-        data: {
-          userID: result.data.userID,
-          clientId: result.data.clientId,
-          company: {
-            name: result.data.company.name,
-            status: result.data.company.status,
-            logo: result.data.company.logo
-          },
-          user: {
-            email: result.data.user.email,
-            role: result.data.user.role,
-            status: result.data.user.status,
-            firstName: result.data.user.firstName,
-            lastName: result.data.user.lastName
-          }
-        }
-      };
+      return result as ClientResponse;
     }
 
     return {
       status: 'error',
-      message: 'Failed to fetch client data'
+      message: result.message || 'Failed to fetch client data'
     };
   } catch (error) {
+    console.error('❌ Error fetching client:', error);
     return {
       status: 'error',
       message: error instanceof Error ? error.message : 'Failed to fetch client data'

@@ -1,9 +1,10 @@
-// import React from 'react';
+// src/components/admin/ContentManager.tsx
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import { DocumentLibrary } from './content/DocumentLibrary';
 import { VideoUploader } from './content/shared/VideoUploader';
 import { WebPagesTab } from './content/tabs/WebPagesTab';
-import { Info, FileText, Globe, Video } from 'lucide-react';
+import { SolutionsTab } from './content/SolutionsTab';
+import { Info, FileText, Globe, Video, Briefcase } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { Card, CardHeader, CardContent } from '../ui/card';
 
@@ -22,6 +23,7 @@ export function ContentManager() {
           <CardContent className="text-sm text-blue-600">
             <p>Upload and organize your company's content to power AI-driven solution discovery:</p>
             <ul className="list-disc list-inside mt-2 space-y-1">
+              <li>Solutions: Define your company's solutions and service offerings</li>
               <li>Solution Documents: Product sheets, case studies, proposals, pricing guides</li>
               <li>Web Resources: Product pages, documentation, blog posts</li>
               <li>Video Content: Product demos, customer testimonials, webinars</li>
@@ -30,8 +32,21 @@ export function ContentManager() {
         </Card>
       </div>
 
-      <Tabs defaultValue="documents" className="w-full">
+      <Tabs defaultValue="solutions" className="w-full">
         <TabsList className="mb-4">
+          <TabsTrigger value="solutions" className="flex items-center gap-2">
+            <Briefcase className="w-4 h-4" />
+            Solutions
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="w-4 h-4 text-gray-400 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent>
+                Define and manage your company's solutions and service offerings
+              </TooltipContent>
+            </Tooltip>
+          </TabsTrigger>
+
           <TabsTrigger value="documents" className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
             Solution Documents
@@ -74,6 +89,10 @@ export function ContentManager() {
             </Tooltip>
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="solutions">
+          <SolutionsTab />
+        </TabsContent>
 
         <TabsContent value="documents">
           <DocumentLibrary />

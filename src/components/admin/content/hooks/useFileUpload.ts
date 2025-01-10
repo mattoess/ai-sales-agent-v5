@@ -19,7 +19,6 @@ interface UploadMetadata {
   outcomes: string[];
   audience: AudienceType[];
   vectorNamespace: string;
-  isCompanyWide: boolean;
 }
 
 const DEFAULT_METADATA: UploadMetadata = {
@@ -28,7 +27,6 @@ const DEFAULT_METADATA: UploadMetadata = {
   outcomes: [],
   audience: [],
   vectorNamespace: '',
-  isCompanyWide: false
 };
 
 export function useFileUpload() {
@@ -77,7 +75,6 @@ export function useFileUpload() {
           contentType: 'solution' as ContentType,
           metadata: {
             ...metadataWithNamespace,
-            isCompanyWide: metadata.isCompanyWide
           },
           status: 'not_embedded' as DocumentStatus,
           processingMetadata: {

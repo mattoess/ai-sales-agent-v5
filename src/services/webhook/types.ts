@@ -1,4 +1,5 @@
-import { Document, Video } from '../../components/admin/content/types';
+// src/services/webhook/types.ts
+import { Document, Video } from '../../components/admin/content/types/index';
 
 export interface WebhookMetadata {
   id: string;

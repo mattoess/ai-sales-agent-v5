@@ -1,8 +1,15 @@
+// src/services/webhook/index.ts
 import { Document, Video } from '../../components/admin/content/types';
 import { createDocumentPayload } from './documentProcessor';
 import { createVideoPayload } from './videoProcessor';
 import { sendWebhook } from './utils';
 import { WebhookResponse } from './types';
+
+export interface WebhookResponse {
+  success: boolean;
+  processingId?: string;
+  error?: string;
+}
 
 export class WebhookService {
   static async processDocument(

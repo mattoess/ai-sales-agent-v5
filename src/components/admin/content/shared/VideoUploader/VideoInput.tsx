@@ -1,32 +1,47 @@
+// src/components/admin/content/shared/VideoUploader/VideoInput.tsx
 import React from 'react';
-import { Input } from '../../../../ui/input';
-import { Button } from '../../../../ui/button';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 
-interface VideoInputProps {
-  url: string;
-  onUrlChange: (url: string) => void;
-  onAdd: () => void;
-  error?: string;
-}
+// Remove the duplicate interface since it's imported
+import type { VideoInputProps } from './types';
 
-export function VideoInput({ url, onUrlChange, onAdd, error }: VideoInputProps) {
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onAdd();
+export const VideoInput: React.FC<VideoInputProps> = ({
+  url,
+  onUrlChange,
+  onAdd,
+  error,
+  disabled
+}) => {
+  const handleAdd = async () => {
+    await onAdd();
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2">
-      <div className="flex-1">
+    <div className="space-y-2">
+      <div className="flex space-x-2">
         <Input
-          placeholder="Enter YouTube URL"
           value={url}
           onChange={(e) => onUrlChange(e.target.value)}
+          placeholder="Enter YouTube URL..."
           className={error ? 'border-red-500' : ''}
+          disabled={disabled}
         />
-        {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+        <Button
+          onClick={handleAdd}
+          disabled={disabled || !url}
+        >
+          {disabled ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            'Add Video'
+          )}
+        </Button>
       </div>
-      <Button type="submit">Add Video</Button>
-    </form>
+      {error && (
+        <p className="text-sm text-red-500">{error}</p>
+      )}
+    </div>
   );
-}
+};

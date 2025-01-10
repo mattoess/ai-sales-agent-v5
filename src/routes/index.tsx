@@ -10,6 +10,7 @@ import { Loader2 } from 'lucide-react';
 import { useOnboardingStore } from '../store/onboardingStore';
 import { ONBOARDING_STEPS } from '../types/onboarding';
 import { useEffect } from 'react';
+import { TestClient } from '../pages/TestClient';
 
 // Separate component for onboarding route
 function OnboardingRedirect() {
@@ -83,6 +84,7 @@ export function AppRoutes() {
       >
         <Route path={ROUTES.DASHBOARD} element={<Dashboard />} />
         <Route path="/admin/content" element={<ContentManager />} />
+        <Route path="/test-client" element={<TestClient />} />
         
         {/* Redirect root to dashboard for signed-in users */}
         <Route
