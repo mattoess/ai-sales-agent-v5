@@ -1,13 +1,31 @@
+// src/hooks/useEmbeddingQueue.ts
 import { useCallback } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { useDocumentStore } from '../components/admin/content/hooks/useDocumentStore';
-import { Document } from '../components/admin/content/types';
-import { makeApiRequest, MAKE_CONFIG, ContentProcessingResponse, validateContentResponse } from '../services/make';
+import type { Document, Video, DocumentStatus } from '../components/admin/content/types';
+import { makeApiRequest } from '../services/make/api';
 import { AppError, ErrorType } from '../services/errors';
+import { MAKE_CONFIG } from '../services/make/config';
+
+type Content = Document | Video;
+
+export interface ProcessingMetadata {
+  extractionFlags: {
+    pricing: boolean;
+    metrics: boolean;
+    methodology: boolean;
+  };
+  lastProcessed: Date;
+  error?: {
+    type: string;
+    message: string;
+    details?: Record<string, unknown>;
+  };
+}
 
 class EmbeddingQueue {
   private static instance: EmbeddingQueue;
-  private queue: Document[] = [];
+  private queue: Content[] = [];
   private processing = false;
   private errors: Map<string, AppError> = new Map();
 
@@ -20,17 +38,33 @@ class EmbeddingQueue {
     return EmbeddingQueue.instance;
   }
 
-  getError(documentId: string): AppError | undefined {
-    return this.errors.get(documentId);
+  private isDocument(content: Content): content is Document {
+    return 'file' in content && content.file instanceof File;
+  }
+
+  private isVideo(content: Content): content is Video {
+    return 'url' in content;
+  }
+
+  private getNamespace(content: Content, clientId: string): string {
+    if (this.isDocument(content)) {
+      // Access contentType directly from Document
+      return `${clientId}-${content.contentType}`;
+    }
+    return `${clientId}-video`;
+  }
+
+  getError(id: string): AppError | undefined {
+    return this.errors.get(id);
   }
 
   async add(
-    document: Document, 
-    user: any, 
-    updateStatus: (id: string, status: Document['status'], error?: AppError) => void
+    content: Content,
+    user: any,
+    updateStatus: (id: string, status: DocumentStatus, error?: AppError) => void
   ) {
-    this.queue.push(document);
-    updateStatus(document.id, 'waiting');
+    this.queue.push(content);
+    updateStatus(content.id, 'waiting');
     
     if (!this.processing) {
       await this.processQueue(user, updateStatus);
@@ -38,8 +72,8 @@ class EmbeddingQueue {
   }
 
   private async processQueue(
-    user: any, 
-    updateStatus: (id: string, status: Document['status'], error?: AppError) => void
+    user: any,
+    updateStatus: (id: string, status: DocumentStatus, error?: AppError) => void
   ) {
     if (this.queue.length === 0) {
       this.processing = false;
@@ -47,35 +81,30 @@ class EmbeddingQueue {
     }
 
     this.processing = true;
-    const document = this.queue[0];
+    const content = this.queue[0];
 
     try {
-      updateStatus(document.id, 'processing');
-      this.errors.delete(document.id); // Clear any previous errors
+      updateStatus(content.id, 'processing');
+      this.errors.delete(content.id);
 
-      const namespace = `${user.publicMetadata.clientId}-${document.contentType?.primary || 'general'}`;
+      const namespace = this.getNamespace(content, user.publicMetadata.clientId);
 
       const payload = {
-        document: {
-          id: document.id,
+        content: {
+          id: content.id,
           clientId: user.publicMetadata.clientId,
-          name: document.name,
-          type: document.type,
-          contentType: document.contentType,
+          name: this.isDocument(content) ? content.name : content.title,
+          type: this.isDocument(content) ? 'document' : 'video',
           metadata: {
-            ...document.metadata,
             vectorNamespace: namespace
           },
         },
-        file: document.file,
+        file: this.isDocument(content) ? content.file : undefined,
+        url: this.isVideo(content) ? content.url : undefined,
         processing: {
-          priority: document.processingMetadata?.priority || 'normal',
+          priority: 'normal',
           namespace,
-          extractionFlags: {
-            pricing: document.processingMetadata?.extractionFlags?.pricing || false,
-            metrics: document.processingMetadata?.extractionFlags?.metrics || true,
-            methodology: document.processingMetadata?.extractionFlags?.methodology || false,
-          },
+          settings: MAKE_CONFIG.timeouts.content
         },
         user: {
           id: user.id,
@@ -84,41 +113,28 @@ class EmbeddingQueue {
         }
       };
 
-      const response = await makeApiRequest<ContentProcessingResponse>(
+      const response = await makeApiRequest(
         MAKE_CONFIG.urls.content.process,
         payload,
-        validateContentResponse,
-        MAKE_CONFIG.timeouts.content.process
+        (data: unknown): data is { success: boolean } => {
+          return typeof data === 'object' && data !== null && 'success' in data;
+        }
       );
 
       if (!response.success) {
-        throw new AppError(
-          ErrorType.CONTENT,
-          'Content processing failed',
-          {
-            details: {
-              documentId: document.id,
-              status: response.status,
-              metadata: response.metadata
-            }
-          }
-        );
+        throw new AppError(ErrorType.CONTENT, 'Content processing failed');
       }
 
-      updateStatus(document.id, 'embedded');
-
+      updateStatus(content.id, 'embedded');
     } catch (error) {
-      const appError = error instanceof AppError 
-        ? error 
-        : new AppError(
-            ErrorType.CONTENT,
-            'Failed to process document',
-            { originalError: error }
-          );
+      const appError = error instanceof AppError ? error : new AppError(
+        ErrorType.CONTENT,
+        'Failed to process content',
+        { originalError: error }
+      );
 
-      this.errors.set(document.id, appError);
-      console.error('Error processing document:', appError);
-      updateStatus(document.id, 'failed', appError);
+      this.errors.set(content.id, appError);
+      updateStatus(content.id, 'failed', appError);
     }
 
     this.queue.shift();
@@ -139,48 +155,57 @@ export function useEmbeddingQueue() {
     if (!user || !document.file) {
       throw new AppError(
         ErrorType.VALIDATION,
-        'Missing required user or file data',
-        {
-          details: {
-            hasUser: !!user,
-            hasFile: !!document.file,
-            documentId: document.id
-          }
-        }
+        'Missing required user or file data'
       );
     }
-
-    const baseProcessingMetadata = {
-      priority: document.processingMetadata?.priority || 'normal',
-      vectorNamespace: document.metadata.vectorNamespace,
-      extractionFlags: {
-        pricing: document.processingMetadata?.extractionFlags?.pricing || false,
-        metrics: document.processingMetadata?.extractionFlags?.metrics || true,
-        methodology: document.processingMetadata?.extractionFlags?.methodology || false,
-      },
-      lastProcessed: new Date()
-    } as const;
 
     await queue.add(
       document,
       user,
-      (id, status, error) => updateDocument(id, { 
-        status,
-        processingMetadata: {
-          ...baseProcessingMetadata,
-          error: error ? {
+      (id: string, status: DocumentStatus, error?: AppError) => {
+        const processingMetadata: ProcessingMetadata | undefined = error ? {
+          extractionFlags: document.processingMetadata?.extractionFlags || {
+            pricing: false,
+            metrics: false,
+            methodology: false
+          },
+          lastProcessed: new Date(),
+          error: {
             type: error.type,
             message: error.message,
             details: error.context.details
-          } : undefined
-        }
-      })
+          }
+        } : undefined;
+
+        updateDocument(id, { 
+          status,
+          processingMetadata
+        });
+      }
     );
   }, [user, updateDocument]);
 
-  return { 
-    embedDocument, 
+  const embedVideo = useCallback(async (video: Video) => {
+    if (!user) {
+      throw new AppError(
+        ErrorType.VALIDATION,
+        'Missing required user data'
+      );
+    }
+
+    await queue.add(
+      video,
+      user,
+      (id: string, status: DocumentStatus) => {
+        updateDocument(id, { status });
+      }
+    );
+  }, [user, updateDocument]);
+
+  return {
+    embedDocument,
+    embedVideo,
     queueLength: queue.getQueueLength(),
-    getError: (documentId: string) => queue.getError(documentId)
+    getError: (id: string) => queue.getError(id)
   };
 }

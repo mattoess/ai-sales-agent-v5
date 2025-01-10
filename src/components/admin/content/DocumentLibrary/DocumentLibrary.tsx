@@ -56,7 +56,7 @@ const CONTENT_TYPE_GUIDES: Record<ContentType, ContentTypeGuide> = {
     examples: ['Process Guides', 'Best Practices', 'Frameworks'],
     recommendations: 'Detail step-by-step approaches and outcomes'
   }
-} as const;
+};
 
 export function DocumentLibrary() {
   const { user } = useUser();
@@ -90,7 +90,6 @@ export function DocumentLibrary() {
         metadata: {
           solutions: [],
           audience: [],
-          isCompanyWide: false,
           vectorNamespace: clientId
         },
         status: 'not_embedded',
@@ -199,34 +198,34 @@ export function DocumentLibrary() {
             onValueChange={(value) => setSelectedTabType(value as ContentType)}
           >
             <TabsList className="mb-4">
-            {Object.entries(CONTENT_TYPE_GUIDES).map(([key, guide]) => (
-  <TabsTrigger key={key} value={key as ContentType}>
-    {guide.title}
-  </TabsTrigger>
-))}
+              {Object.entries(CONTENT_TYPE_GUIDES).map(([key, guide]) => (
+                <TabsTrigger key={key} value={key}>
+                  {guide.title}
+                </TabsTrigger>
+              ))}
             </TabsList>
             
             {Object.entries(CONTENT_TYPE_GUIDES).map(([key, guide]) => (
-  <TabsContent key={key} value={key as ContentType}>
-    <div className="space-y-3">
-      <p className="text-sm text-gray-600">{guide.description}</p>
-      <div className="flex gap-4">
-        <div>
-          <h4 className="text-sm font-medium mb-1">Example Documents</h4>
-          <ul className="text-sm text-gray-600 list-disc list-inside">
-            {guide.examples.map((example: string, i: number) => (
-              <li key={i}>{example}</li>
+              <TabsContent key={key} value={key}>
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-600">{guide.description}</p>
+                  <div className="flex gap-4">
+                    <div>
+                      <h4 className="text-sm font-medium mb-1">Example Documents</h4>
+                      <ul className="text-sm text-gray-600 list-disc list-inside">
+                        {guide.examples.map((example, i) => (
+                          <li key={i}>{example}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium mb-1">Recommendations</h4>
+                      <p className="text-sm text-gray-600">{guide.recommendations}</p>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
             ))}
-          </ul>
-        </div>
-        <div>
-          <h4 className="text-sm font-medium mb-1">Recommendations</h4>
-          <p className="text-sm text-gray-600">{guide.recommendations}</p>
-        </div>
-      </div>
-    </div>
-  </TabsContent>
-))}
           </Tabs>
         </CardContent>
       </Card>

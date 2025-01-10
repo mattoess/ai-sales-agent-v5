@@ -1,6 +1,8 @@
 import React from 'react';
 import { TextAreaField } from './forms/TextAreaField';
 import { useDiscoveryStore } from '../store/discoveryStore';
+import { useSolutionStore } from '../store/solutionStore';
+import { useClientStore } from '../store/clientStore';
 import { motion } from 'framer-motion';
 import {
   Select,
@@ -10,6 +12,13 @@ import {
   SelectValue,
 } from './ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+
+// Default solutions if no client solutions are loaded
+const DEFAULT_SOLUTIONS = [
+  'Executive Team Coaching',
+  'Executive 1:1 Coaching',
+  'Executive Readiness Coaching',
+];
 
 export function ThemesReview() {
   const { 
@@ -31,6 +40,14 @@ export function ThemesReview() {
     showError: state.discovery.showError,
     setShowError: state.setShowError,
   }));
+
+  const { solutions } = useSolutionStore();
+  const { client } = useClientStore();
+
+  // Use client solutions if available, otherwise use defaults
+  const solutionOptions = client.data.clientId && solutions.length > 0 
+    ? solutions.map(s => s.name)
+    : DEFAULT_SOLUTIONS;
 
   React.useEffect(() => {
     const defaultName = `${discovery.prospectInfo.companyName}-discovery-${new Date().toISOString().split('T')[0]}`;
@@ -60,13 +77,6 @@ export function ThemesReview() {
     updateSolution(value);
     setShowError(false); // Clear error when solution is selected
   };
-
-  // Example dynamic solution options
-  const solutionOptions = [
-    'Executive Team Coaching',
-    'Executive 1:1 Coaching',
-    'Executive Readiness Coaching',
-  ];
 
   return (
     <motion.div 
@@ -137,7 +147,7 @@ export function ThemesReview() {
               onValueChange={handleSolutionChange}
               value={solution || ''}
             >
-              <SelectTrigger className="w-full p-2 border rounded-md focus:ring-2 focus:ring-[#009A4D] focus:border-[#009A4D]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Solution Recommendation" />
               </SelectTrigger>
               <SelectContent>

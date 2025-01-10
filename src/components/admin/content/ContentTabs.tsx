@@ -4,7 +4,10 @@ import { FileText, Globe, Youtube } from 'lucide-react';
 import { DocumentsTab } from './tabs/DocumentsTab';
 import { WebPagesTab } from './tabs/WebPagesTab';
 import { VideosTab } from './tabs/VideosTab';
+import { IconButton } from '@/components/ui/icon-button';
+// import { filters } from './types';
 
+// In ContentTabs.tsx
 interface ContentTabsProps {
   filters: {
     status: string[];
@@ -30,7 +33,15 @@ export function ContentTabs({
   return (
     <Tabs defaultValue="documents" className="w-full">
       <TabsList className="mb-4">
-        <TabsTrigger value="documents" className="flex items-center gap-2">
+        <TabsTrigger value="solutions">
+          <FileText className="w-4 h-4" />
+          Solutions
+          </TabsTrigger>
+          <TabsTrigger value="documents">
+          <FileText className="w-4 h-4" />
+          Solution Documents
+        </TabsTrigger>
+      <TabsTrigger value="documents" className="flex items-center gap-2">
           <FileText className="w-4 h-4" />
           Documents
         </TabsTrigger>
@@ -45,16 +56,16 @@ export function ContentTabs({
       </TabsList>
 
       <TabsContent value="documents">
-        <DocumentsTab
-          filters={filters}
-          onSearch={onSearch}
-          onStatusChange={onStatusChange}
-          onEditPage={onEditPage}
-          isEditorOpen={isEditorOpen}
-          selectedPage={selectedPage}
-          onCloseEditor={onCloseEditor}
-        />
-      </TabsContent>
+      <DocumentsTab
+        filters={filters}
+        onSearch={onSearch}
+        onStatusChange={onStatusChange}
+        onEditPage={onEditPage}
+        isEditorOpen={isEditorOpen}
+        selectedPage={selectedPage}
+        onCloseEditor={onCloseEditor}
+      />
+    </TabsContent>
 
       <TabsContent value="webpages">
         <WebPagesTab />

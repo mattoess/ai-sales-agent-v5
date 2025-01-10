@@ -90,7 +90,6 @@ export function DocumentContent() {
         metadata: {
           solutions: [],
           audience: [],
-          isCompanyWide: false,
           vectorNamespace: clientId // Single namespace per client
         },
         status: 'not_embedded',

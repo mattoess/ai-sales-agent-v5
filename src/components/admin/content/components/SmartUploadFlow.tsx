@@ -13,7 +13,6 @@ import { AppError, ErrorType } from '@/services/errors';
 interface MetadataState {
   solutions: string[];
   audience: AudienceType[];
-  isCompanyWide: boolean;
   vectorNamespace: string;
 }
 
@@ -67,7 +66,6 @@ export function SmartUploadFlow() {
   const [metadata, setMetadata] = useState<MetadataState>({
     solutions: [],
     audience: [],
-    isCompanyWide: false,
     vectorNamespace: ''
   });
 
@@ -133,7 +131,6 @@ export function SmartUploadFlow() {
       setMetadata({
         solutions: [],
         audience: [],
-        isCompanyWide: false,
         vectorNamespace: ''
       });
     } catch (err) {
@@ -160,20 +157,19 @@ export function SmartUploadFlow() {
             <h3 className="text-lg font-semibold">Configure Document Settings</h3>
           </CardHeader>
           <CardContent className="space-y-4">
-            <MetadataSelectors
-              value={{
-                solutions: metadata.solutions,
-                audience: metadata.audience,
-                isCompanyWide: metadata.isCompanyWide
-              }}
-              onChange={(newValue) => {
-                setMetadata(prev => ({
-                  ...prev,
-                  ...newValue,
-                  vectorNamespace: prev.vectorNamespace
-                }));
-              }}
-            />
+          <MetadataSelectors
+  value={{
+    solutions: metadata.solutions,
+    audience: metadata.audience,
+    vectorNamespace: metadata.vectorNamespace // Add this line
+  }}
+  onChange={(newValue) => {
+    setMetadata(prev => ({
+      ...prev,
+      ...newValue
+    }));
+  }}
+/>
             
             <div className="flex justify-end space-x-4">
               <Button

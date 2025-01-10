@@ -11,7 +11,7 @@ export interface ClientSettings {
 
 export interface ClientSubscription {
     plan: 'free' | 'pro' | 'enterprise';
-    status: 'active' | 'inactive' | 'trial';
+    status: 'active' | 'pending' | 'trial';
     expiresAt?: string;
     stripeSubscriptionId?: string;
     stripePriceId?: string;
@@ -27,9 +27,11 @@ interface LogoInfo {
 }
 
 export interface ClientData extends BaseClientData {
+  id: string;
+  name: string;
   userID?: string;         // Add this line
   role?: ClientRole;
-  status?: 'active' | 'inactive';
+  status?: 'active' | 'pending';
   lastLoginAt?: string;
   settings?: ClientSettings;
   subscription?: ClientSubscription;
@@ -41,7 +43,7 @@ export interface ExistingAccount extends BaseClientData {
     userID: string;         // Our internal unique identifier
     clerkUserId: string;
     stripeCustomerId?: string;
-    status: 'active' | 'inactive';
+    status: 'active' | 'pending';
 }
 
 export interface ClientResponse extends BaseResponse {
@@ -53,7 +55,12 @@ export interface ClientResponse extends BaseResponse {
         company: {
             name: string;
             status: 'active' | 'pending';
-            logo?: LogoInfo;    // Changed from LogoAttachment to LogoInfo
+            logo?: {
+                name: string;
+                path: string;
+                type: string;
+                uploadedAt: string;
+            };
             industry?: string;
             website?: string;
         };
@@ -70,4 +77,12 @@ export interface ClientResponse extends BaseResponse {
 export interface ClientState {
     isRegistered: boolean;
     data: ClientData;
-}
+  }
+  
+  export interface ClientStore {
+    client: ClientState;
+    setRegistered: (value: boolean) => void;
+    updateClientData: (data: Partial<ClientData>) => void;
+    setClientData: (clientId: string, clerkUserId: string, userID: string) => void;
+    resetClientData: () => void;
+  }

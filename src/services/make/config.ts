@@ -10,11 +10,12 @@ export const MAKE_CONFIG = {
       process: import.meta.env.VITE_MAKE_CONTENT_PROCESS_WEBHOOK,
       embed: import.meta.env.VITE_MAKE_CONTENT_EMBED_WEBHOOK,
       analyze: import.meta.env.VITE_MAKE_CONTENT_ANALYZE_WEBHOOK,
+      solutionOptions: import.meta.env.VITE_MAKE_CONTENT_SOLUTION_OPTIONS_WEBHOOK,
     }
   },
   retry: {
-    maxAttempts: 3,
-    delayMs: 1000,
+    maxAttempts: 1,
+    delayMs: 2000,
     maxDelayMs: 20000,
   },
   timeouts: {

@@ -18,7 +18,11 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({ onFileSelect }) => {
   }, []);
 
   const validateFiles = useCallback((files: File[]): boolean => {
-    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    const allowedTypes = [
+      'application/pdf',                                                         // .pdf
+      'application/msword',                                                     // .doc
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document' // .docx
+    ];
     const maxSize = 10 * 1024 * 1024; // 10MB
 
     for (const file of files) {
@@ -57,14 +61,13 @@ export const FileDropzone: React.FC<FileDropzoneProps> = ({ onFileSelect }) => {
     }
   }, [onFileSelect, validateFiles]);
 
-  const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = e.target.files ? Array.from(e.target.files) : [];
-    if (validateFiles(selectedFiles)) {
-      onFileSelect(selectedFiles);
-    }
-    // Reset input value to allow selecting the same file again
-    e.target.value = '';
-  }, [onFileSelect, validateFiles]);
+const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const selectedFiles = e.target.files ? Array.from(e.target.files) : [];
+  if (validateFiles(selectedFiles)) {
+    onFileSelect(selectedFiles);
+  }
+  e.target.value = '';
+}, [onFileSelect, validateFiles]);
 
   return (
     <div
