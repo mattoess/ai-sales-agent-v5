@@ -2,6 +2,12 @@
 import { AppError, ErrorType } from '../errors';
 import { MAKE_CONFIG } from './config';
 
+interface ErrorContext {
+  details?: any;
+  originalError?: any;
+  statusCode?: number;  // Add this to allow statusCode in error context
+}
+
 export async function makeApiRequest<T>(
   endpoint: string,
   payload: any,
@@ -36,7 +42,7 @@ export async function makeApiRequest<T>(
         throw new AppError(ErrorType.API, `HTTP error! Status: ${response.status}`, {
           statusCode: response.status,
           details: { endpoint, attempt: attempt + 1 }
-        });
+        } as ErrorContext);
       }
 
       console.log('✅ Response status:', response.status);
@@ -47,7 +53,7 @@ export async function makeApiRequest<T>(
         if (!validateResponse(data)) {
           throw new AppError(ErrorType.VALIDATION, 'Response validation failed', {
             details: { endpoint, data }
-          });
+          } as ErrorContext);
         }
         return data;
       } catch (validationError) {
@@ -57,7 +63,7 @@ export async function makeApiRequest<T>(
           {
             originalError: validationError,
             details: { endpoint, data }
-          }
+          } as ErrorContext
         );
       }
 
@@ -70,7 +76,7 @@ export async function makeApiRequest<T>(
           if (attempt >= maxAttempts) {
             throw new AppError(ErrorType.NETWORK, 'Request timeout after all retries', {
               details: { endpoint, attempts: maxAttempts }
-            });
+            } as ErrorContext);
           }
         } else {
           console.error(`❌ Attempt ${attempt} failed:`, error);
@@ -80,13 +86,11 @@ export async function makeApiRequest<T>(
         }
       }
 
-      // Exponential backoff delay
       const delay = Math.min(delayMs * Math.pow(2, attempt - 1), maxDelayMs);
       console.log(`⏳ Retrying in ${delay}ms...`);
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
 
-  // This should never be reached due to the throws above, but TypeScript wants it
   throw new AppError(ErrorType.SYSTEM, 'Unexpected end of makeApiRequest');
 }

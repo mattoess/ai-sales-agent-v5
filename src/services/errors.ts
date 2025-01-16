@@ -4,6 +4,7 @@ export enum ErrorType {
   CONTENT = 'CONTENT',
   NETWORK = 'NETWORK',
   API = 'API',
+  AUTH = 'AUTH',
   SYSTEM = 'SYSTEM'
 }
 

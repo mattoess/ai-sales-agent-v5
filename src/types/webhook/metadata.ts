@@ -11,8 +11,6 @@ export interface BaseMetadata {
   processingAttempts: number;
   lastUpdated: string;
   processingErrors?: string[];
-  embeddingModel?: string;
-  embeddingDate?: string;
 }
 
 // Document-specific metadata
@@ -23,12 +21,7 @@ export interface DocumentMetadata extends BaseMetadata {
   lastModified: string;
   pageCount?: number;
   textContent?: string;
-  extractedMetadata?: {
-    title?: string;
-    author?: string;
-    creationDate?: string;
-    keywords?: string[];
-  };
+  
 }
 
 // Web resource metadata

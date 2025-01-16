@@ -21,11 +21,11 @@ export function ContentManager() {
             </div>
           </CardHeader>
           <CardContent className="text-sm text-blue-600">
-            <p>To maximize the power of your Ai Sales Agent, thoughtfully upload your company's content to power AI-driven solution discovery:</p><ol className="list-decimal list-inside mt-2 space-y-1">
-              <li>Solutions: Define your company's key solutions and service offerings</li>
-              <li>Solution Documents: Upload product sheets, case studies, proposals, pricing guides</li>
-              <li>Web Resources: Include URLs for your website, product pages, documentation, blog posts</li>
-              <li>Video Content: Include YouTube video content of your products, demos, customer testimonials, webinars</li>
+            <p>Here's a critical step. To maximize the power of your Ai Sales Agent, thoughtfully upload your company's content to power AI-driven solution discovery:</p><ol className="list-decimal list-inside mt-2 space-y-1">
+              <li>Solution Options: Define your company's key solutions and service offerings</li>
+              <li>Solution Content: Upload product sheets, case studies, proposals, pricing guides</li>
+              <li>Web Resources: Add URLs for your website, product pages, documentation, blog posts</li>
+              <li>YouTube Video Content: Add YouTube video content of your products, demos, customer testimonials, webinars</li>
             </ol>
           </CardContent>
         </Card>
