@@ -136,7 +136,10 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
   error: null,
   uploadProgress: new Map(),
 
-  processBatchDocuments: async (documents) => {
+  processBatchDocuments: async (documents: Array<{
+    file: File;
+    metadata: DocumentMetadata;
+  }>) => {
     const store = get();
     const fileIds = documents.map(doc => `${doc.file.name}-${Date.now()}`);
     
@@ -146,39 +149,59 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
         status: 'ready to process'
       });
     });
-
+  
     try {
-      // Get and validate client and user IDs
       const clientId = useClientStore.getState().client.data.clientId;
       const userId = useClientStore.getState().client.data.userID;
-
+  
       if (!clientId || !userId) {
         throw new AppError(
           ErrorType.AUTH,
           'Client ID or User ID not found'
         );
       }
-
-      // Prepare webhook payload
+  
+      // Convert files to base64
+      const documentsWithBase64 = await Promise.all(
+        documents.map(async (doc, index) => {
+          // Convert file to base64
+          const base64 = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              // Remove data:application/pdf;base64, prefix
+              const base64String = (reader.result as string).split(',')[1];
+              resolve(base64String);
+            };
+            reader.readAsDataURL(doc.file);
+          });
+  
+          return {
+            fileKey: `file_${index}`,
+            name: doc.file.name,
+            size: doc.file.size,
+            mimeType: validateMimeType(doc.file.type),
+            contentType: doc.metadata.contentType,
+            fileData: base64,  // Include base64 data
+            metadata: {
+              description: doc.metadata.description,
+              solutions: doc.metadata.solutions,
+              audience: doc.metadata.audience,
+              tags: doc.metadata.tags,
+              contentType: doc.metadata.contentType
+            }
+          };
+        })
+      );
+  
       const payload: BatchDocumentProcessingPayload = {
-        documents: documents.map(doc => ({
-          name: doc.file.name,
-          size: doc.file.size,
-          mimeType: validateMimeType(doc.file.type),
-          contentType: doc.metadata.contentType,
-          metadata: {
-            description: doc.metadata.description,
-            solutions: doc.metadata.solutions,
-            audience: doc.metadata.audience,
-            tags: normalizeTags(doc.metadata.tags),
-            contentType: doc.metadata.contentType
-          }
-        })),
-        context: {
-          clientId,    // Now TypeScript knows this is a string
-          userId      // Now TypeScript knows this is a string
-        },
-        action: 'process'
+        metadata: {
+          documents: documentsWithBase64,
+          context: {
+            clientId,
+            userId
+          },
+          action: 'process'
+        }
       };
 
       // Log the webhook payload for debugging

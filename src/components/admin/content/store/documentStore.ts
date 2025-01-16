@@ -129,40 +129,63 @@ export const useDocumentStore = create<DocumentState>((set, get) => ({
   processSelectedDocuments: async (clientId: string, userId: string) => {
     const state = get();
     const documentsToProcess = state.documents.filter(
-      doc => state.selectedDocumentIds.includes(doc.id)
+      doc => state.selectedDocumentIds.includes(doc.id) && doc.file !== undefined 
     );
 
     set({ isProcessing: true });
 
     try {
+      // Convert files to base64 first
+      const documentsWithBase64 = await Promise.all(
+        documentsToProcess.map(async (doc, index) => {
+          // We know doc.file exists because of the filter above
+          const fileData = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              const base64String = (reader.result as string).split(',')[1];
+              resolve(base64String);
+            };
+            reader.readAsDataURL(doc.file!); // We can use ! here because we filtered
+          });
+
+          return {
+            fileKey: `file_${index}`,
+            name: doc.name,
+            size: doc.size,
+            mimeType: doc.mimeType,
+            contentType: doc.contentType,
+            fileData,
+            metadata: {
+              description: doc.description,
+              solutions: doc.metadata.solutions,
+              audience: doc.metadata.audience,
+              tags: doc.metadata.tags,
+              contentType: doc.contentType
+            }
+          };
+        })
+      );
       const payload: BatchDocumentProcessingPayload = {
-        documents: documentsToProcess.map(doc => ({
-          name: doc.name,
-          size: doc.size,
-          mimeType: doc.mimeType,
-          contentType: doc.contentType,
-          metadata: {
-            description: doc.description,
-            solutions: doc.metadata.solutions,
-            audience: doc.metadata.audience,
-            tags: doc.metadata.tags,
-            contentType: doc.contentType
-          }
-        })),
-        context: {
-          clientId,
-          userId
-        },
-        action: 'process'
+        metadata: {
+          documents: documentsWithBase64,
+          context: {
+            clientId,
+            userId
+          },
+          action: 'process'
+        }
       };
 
-      documentsToProcess.forEach(doc => {
-        get().updateDocument(doc.id, { status: 'processing' });
-      });
-
+      // Remove FormData related code since we're using JSON with base64
       const response = await makeApiRequest<BatchProcessResponse>(
         MAKE_CONFIG.urls.content.process,
-        { payload },
+        { 
+          method: 'POST',
+          body: JSON.stringify(payload),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        },
         isBatchProcessResponse,
         MAKE_CONFIG.timeouts.content.process
       );
