@@ -7,9 +7,7 @@ export const MAKE_CONFIG = {
     loadSession: import.meta.env.VITE_MAKE_LOAD_SESSION_WEBHOOK,
     client: import.meta.env.VITE_MAKE_CLIENT_WEBHOOK,
     content: {
-      process: import.meta.env.VITE_MAKE_CONTENT_PROCESS_WEBHOOK,
-      embed: import.meta.env.VITE_MAKE_CONTENT_EMBED_WEBHOOK,
-      analyze: import.meta.env.VITE_MAKE_CONTENT_ANALYZE_WEBHOOK,
+      process: import.meta.env.VITE_MAKE_CONTENT_PROCESS_DOCUMENT_WEBHOOK,
       solutionOptions: import.meta.env.VITE_MAKE_CONTENT_SOLUTION_OPTIONS_WEBHOOK,
     }
   },
@@ -25,9 +23,9 @@ export const MAKE_CONFIG = {
     loadSession: 30000,
     client: 30000,
     content: {
-      process: 60000,    // Content processing might take longer
-      embed: 45000,
-      analyze: 30000,
+      process: 60000,    // Content processing might take longer for bulk embedding
+      list: 20000,
+      delete: 20000,
     }
   },
   // Updated constants to match new webhook structure

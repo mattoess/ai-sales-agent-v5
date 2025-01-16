@@ -1,249 +1,246 @@
-// src/components/admin/content/DocumentLibrary/DocumentLibrary.tsx
-import { useState, useCallback } from 'react';
-import { useUser } from '@clerk/clerk-react';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import React, { useEffect, useState } from 'react';
+import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  FolderBreadcrumb,
-  FileDropzone,
-  CloudStorageButtons,
-} from '../shared';
-import { BulkEditTable } from './components/BulkEditTable';
-import { InfoTooltip } from '../shared';
-import { useCloudStorage } from '@/hooks/useCloudStorage';
+import { SmartUploadZone } from './components/SmartUploadZone';
+import { DocumentGrid } from './components/DocumentGrid';
+import { CloudStorageIntegration } from './components/CloudStorageIntegration';
+import { ProcessingQueue } from './components/ProcessingQueue';
+import { DocumentToolbar } from './components/DocumentToolbar';
+import { DocumentMetadataDialog } from './components/DocumentMetadataDialog';
 import { useDocumentStore } from '../hooks/useDocumentStore';
-import { useEmbeddingQueue } from '@/hooks/useEmbeddingQueue';
+import { useClientStore } from '@/store/clientStore';
 import { ErrorDisplay } from '@/components/ui/error-display';
-import { AppError, ErrorType } from '@/services/errors';
-import type { Document, ContentType } from '../types';
-
-interface ContentTypeGuide {
-  title: string;
-  description: string;
-  examples: string[];
-  recommendations: string;
-}
-
-const CONTENT_TYPE_GUIDES: Record<ContentType, ContentTypeGuide> = {
-  solution: {
-    title: 'Solution Documents',
-    description: 'Product descriptions, capabilities, and value propositions (PDF, DOC, DOCX)',
-    examples: ['Product Sheets', 'Solution Briefs', 'Feature Guides'],
-    recommendations: 'Include clear value propositions and use cases for your solutions and industries you serve'
-  },
-  case_study: {
-    title: 'Case Studies',
-    description: 'Customer success stories and implementation examples',
-    examples: ['Success Stories', 'ROI Analysis', 'Implementation Examples'],
-    recommendations: 'Highlight metrics, outcomes, and industry context'
-  },
-  technical: {
-    title: 'Technical Documentation',
-    description: 'Detailed technical specifications and guides',
-    examples: ['API Docs', 'Integration Guides', 'Technical Specs'],
-    recommendations: 'Include clear requirements and implementation steps'
-  },
-  pricing: {
-    title: 'Pricing Information',
-    description: 'Pricing models and commercial details',
-    examples: ['Price Lists', 'Rate Cards', 'Licensing Models'],
-    recommendations: 'Structure pricing clearly with options and tiers'
-  },
-  methodology_and_frameworks: {
-    title: 'Methodology & Frameworks',
-    description: 'Process frameworks and methodological approaches',
-    examples: ['Process Guides', 'Best Practices', 'Frameworks'],
-    recommendations: 'Detail step-by-step approaches and outcomes'
-  }
-};
+import { ContentType, DocumentFilters, DocumentSort } from '@/types/DocumentLibrary';
+import { CONTENT_TYPE_INFO } from './constants';
+import { ErrorType } from '@/services/errors';
+import { toast } from '@/components/ui/use-toast';
 
 export function DocumentLibrary() {
-  const { user } = useUser();
-  const { openGoogleDrivePicker, openDropboxChooser } = useCloudStorage();
-  const { addDocument, documents, updateDocuments } = useDocumentStore();
-  const { embedDocument } = useEmbeddingQueue();
-  const [selectedTabType, setSelectedTabType] = useState<ContentType>('solution');
-  const [readyToProcess, setReadyToProcess] = useState(false);
-  const [processingError, setProcessingError] = useState<AppError | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const clientStore = useClientStore();
+  const [selectedContentType, setSelectedContentType] = useState<ContentType>('solution');
+  const [filters, setFilters] = useState<DocumentFilters>({});
+  const [sort, setSort] = useState<DocumentSort>({
+    field: 'lastModified',
+    direction: 'desc'
+  });
 
-  const handleFileSelect = useCallback((files: File[]) => {
-    if (!user) return;
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [showMetadataDialog, setShowMetadataDialog] = useState(false);
 
-    files.forEach(file => {
-      const clientId = user.publicMetadata.clientId as string;
-      const contentType = selectedTabType;
-      
-      const newDocument: Document = {
-        id: crypto.randomUUID(),
-        name: file.name,
-        type: 'file',
-        path: '/',
-        tags: [],
-        size: file.size,
-        lastModified: new Date(file.lastModified),
-        file,
-        clientId,
-        userId: user.id,
-        contentType,
-        metadata: {
-          solutions: [],
-          audience: [],
-          vectorNamespace: clientId
-        },
-        status: 'not_embedded',
-        processingMetadata: {
-          extractionFlags: {
-            pricing: contentType === 'pricing',
-            metrics: contentType === 'case_study',
-            methodology: contentType === 'methodology_and_frameworks'
-          },
-          lastProcessed: new Date()
-        }
-      };
-      
-      addDocument(newDocument);
-    });
+  const {
+    documents,
+    selectedDocumentIds,
+    uploadProgress,
+    isLoading,
+    error,
+    loadDocuments,
+    processBatchDocuments,
+    deleteDocuments,
+    toggleDocumentSelection,
+    clearSelection,
+  } = useDocumentStore();
 
-    setReadyToProcess(true);
-    setProcessingError(null);
-  }, [addDocument, user, selectedTabType]);
+  useEffect(() => {
+    if (clientStore.client.data.clientId) {
+      loadDocuments(
+        clientStore.client.data.clientId
+      );
+    }
+  }, [clientStore.client.data.clientId, loadDocuments, filters, sort]);
 
-  const handleProcessAll = useCallback(async () => {
-    if (!documents.length || isProcessing) return;
+  // Single handleFileSelect function with logging
+  const handleFileSelect = async (files: File[]) => {
+    if (!clientStore.client.data.clientId) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Client ID not found"
+      });
+      return;
+    }
 
-    setIsProcessing(true);
-    setProcessingError(null);
+    console.log('Selected files:', files.map(f => f.name));
+    setSelectedFiles(files);
+    setShowMetadataDialog(true);
+  };
+
+  const handleMetadataSubmit = async (metadata: {
+    description?: string;
+    solutions: string;    // comma-separated string
+    audience: string;     // comma-separated string
+    tags: string;        // comma-separated string
+    contentType: ContentType;
+  }) => {
+    if (!clientStore.client.data.clientId) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Client ID not found"
+      });
+      return;
+    }
 
     try {
-      const docsToProcess = documents.filter(
-        doc => doc.status === 'not_embedded' || doc.status === 'failed'
-      );
+      console.log('Processing documents with metadata:', {
+        files: selectedFiles.map(f => f.name),
+        metadata
+      });
 
-      if (!docsToProcess.length) {
-        setReadyToProcess(false);
-        return;
-      }
+      const documentsToProcess = selectedFiles.map(file => ({
+        file,
+        metadata: {
+          description: metadata.description,
+          solutions: metadata.solutions,
+          audience: metadata.audience,
+          tags: metadata.tags,
+          contentType: metadata.contentType
+        }
+      }));
 
-      const updatedDocs = documents.map(doc => 
-        docsToProcess.some(d => d.id === doc.id)
-          ? { ...doc, status: 'waiting' as const }
-          : doc
-      );
-      updateDocuments(updatedDocs);
-
-      const batchSize = 5;
-      for (let i = 0; i < docsToProcess.length; i += batchSize) {
-        const batch = docsToProcess.slice(i, i + batchSize);
-        await Promise.all(batch.map(doc => embedDocument(doc)));
-      }
-
-      setReadyToProcess(false);
+      await processBatchDocuments(documentsToProcess);
+      
+      toast({
+        title: "Success",
+        description: `Successfully processed ${selectedFiles.length} document${selectedFiles.length > 1 ? 's' : ''}`
+      });
     } catch (error) {
-      setProcessingError(
-        new AppError(
-          ErrorType.CONTENT,
-          'Failed to process documents',
-          { 
-            originalError: error,
-            details: {
-              failedCount: documents.filter(d => d.status === 'failed').length
-            }
-          }
-        )
-      );
-    } finally {
-      setIsProcessing(false);
+      console.error('Failed to process documents:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to process documents"
+      });
     }
-  }, [documents, updateDocuments, embedDocument, isProcessing]);
 
-  const handleUpdateDocuments = useCallback((updatedDocs: Document[]) => {
-    updateDocuments(updatedDocs);
-  }, [updateDocuments]);
+    setSelectedFiles([]);
+    setShowMetadataDialog(false);
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedDocumentIds.size === 0) return;
+    if (!confirm('Are you sure you want to delete the selected documents?')) return;
+
+    try {
+      await deleteDocuments([...selectedDocumentIds]);
+      toast({
+        title: "Success",
+        description: "Documents deleted successfully"
+      });
+    } catch (error) {
+      console.error('Failed to delete documents:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete documents"
+      });
+    }
+  };
+
+  const handleSearch = (query: string) => {
+    setFilters(prev => ({
+      ...prev,
+      search: query || undefined
+    }));
+  };
+
+  const handleSort = (newSort: DocumentSort) => {
+    setSort(newSort);
+  };
+
+  const handleContentTypeChange = (value: string) => {
+    const contentType = value as ContentType;
+    setSelectedContentType(contentType);
+    setFilters(prev => ({
+      ...prev,
+      contentTypes: [contentType]
+    }));
+  };
+
+  const handleSolutionFilter = (solutions: string) => {
+    setFilters(prev => ({
+      ...prev,
+      solutions: solutions || undefined
+    }));
+  };
 
   return (
     <div className="space-y-6">
-      {processingError && (
+      {error && (
         <ErrorDisplay
-          type={processingError.type}
-          message={processingError.message}
-          details={processingError.context.details}
-          onDismiss={() => setProcessingError(null)}
+          type={ErrorType.CONTENT}
+          message={error}
+          onDismiss={() => useDocumentStore.setState({ error: null })}
         />
       )}
 
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h3 className="text-lg font-semibold">Content Upload Guidelines</h3>
-              <InfoTooltip content="Properly categorized and tagged content improves AI discovery accuracy" />
-            </div>
-            {readyToProcess && (
-              <Button 
-                onClick={handleProcessAll}
-                className="bg-green-600 hover:bg-green-700"
-                disabled={isProcessing}
-              >
-                {isProcessing ? 'Processing...' : 'Process All Documents'}
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs 
-            defaultValue="solution" 
-            className="w-full"
-            onValueChange={(value) => setSelectedTabType(value as ContentType)}
-          >
-            <TabsList className="mb-4">
-              {Object.entries(CONTENT_TYPE_GUIDES).map(([key, guide]) => (
-                <TabsTrigger key={key} value={key}>
-                  {guide.title}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            
-            {Object.entries(CONTENT_TYPE_GUIDES).map(([key, guide]) => (
-              <TabsContent key={key} value={key}>
-                <div className="space-y-3">
-                  <p className="text-sm text-gray-600">{guide.description}</p>
-                  <div className="flex gap-4">
-                    <div>
-                      <h4 className="text-sm font-medium mb-1">Example Documents</h4>
-                      <ul className="text-sm text-gray-600 list-disc list-inside">
-                        {guide.examples.map((example, i) => (
-                          <li key={i}>{example}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium mb-1">Recommendations</h4>
-                      <p className="text-sm text-gray-600">{guide.recommendations}</p>
-                    </div>
-                  </div>
-                </div>
-              </TabsContent>
+        <Tabs
+          value={selectedContentType}
+          onValueChange={handleContentTypeChange}
+        >
+          <TabsList>
+            {Object.entries(CONTENT_TYPE_INFO).map(([type, info]) => (
+              <TabsTrigger key={type} value={type}>
+                {info.title}
+              </TabsTrigger>
             ))}
-          </Tabs>
-        </CardContent>
+          </TabsList>
+
+          {Object.entries(CONTENT_TYPE_INFO).map(([type, info]) => (
+            <TabsContent key={type} value={type}>
+              <div className="p-4 space-y-4">
+                <SmartUploadZone
+                  contentType={type as ContentType}
+                  onFileSelect={handleFileSelect}
+                />
+
+                <CloudStorageIntegration
+                  contentType={type as ContentType}
+                  onFileSelect={handleFileSelect}
+                />
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
       </Card>
 
-      <div className="bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-        <FileDropzone onFileSelect={handleFileSelect} />
-        <div className="px-8 pb-8">
-          <CloudStorageButtons 
-            onGoogleDriveSelect={openGoogleDrivePicker}
-            onDropboxSelect={openDropboxChooser}
-          />
-        </div>
-      </div>
+      <DocumentMetadataDialog
+        isOpen={showMetadataDialog}
+        onClose={() => {
+          setShowMetadataDialog(false);
+          setSelectedFiles([]);
+        }}
+        onSubmit={handleMetadataSubmit}
+        files={selectedFiles}
+      />
 
       {documents.length > 0 && (
-        <BulkEditTable 
-          documents={documents}
-          onUpdateDocuments={handleUpdateDocuments}
+        <div className="space-y-4">
+          <DocumentToolbar
+            selectedCount={selectedDocumentIds.size}
+            onDelete={handleBulkDelete}
+            onClearSelection={clearSelection}
+            onSearch={handleSearch}
+            onSort={handleSort}
+            onSolutionFilter={handleSolutionFilter}
+            currentSort={sort}
+            currentSolutions={filters.solutions}
+          />
+
+          <DocumentGrid
+            documents={documents}
+            selectedIds={selectedDocumentIds}
+            onToggleSelect={toggleDocumentSelection}
+            isLoading={isLoading}
+            contentType={selectedContentType}
+          />
+        </div>
+      )}
+
+      {uploadProgress.size > 0 && (
+        <ProcessingQueue
+          uploadProgress={uploadProgress}
+          onDismissError={(fileId) => useDocumentStore.getState().removeUploadProgress(fileId)}
         />
       )}
     </div>
